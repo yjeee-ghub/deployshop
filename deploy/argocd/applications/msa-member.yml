@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: msa-member
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/yjeee-ghub/deployshop.git
+    targetRevision: main
+    path: deploy/k8s/apps/member
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: soldesk
+  # HPA가 조정하는 Pod 수는 Git의 고정값으로 되돌리지 않습니다.
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      name: member-depl
+      namespace: soldesk
+      jsonPointers:
+        - /spec/replicas
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true

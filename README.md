@@ -1,4 +1,3 @@
-[README.md](https://github.com/user-attachments/files/33522600/README.md)
 <div align="center">
 
 # 🛒 yjeee-deployshop
@@ -14,6 +13,50 @@
 > 회원·상품·주문 기능을 갖춘 온라인 쇼핑몰을 AWS EKS에 배포하고, **인프라 구축부터 배포 자동화, 모니터링, 서비스 검증까지** 구현하는 DevOps 포트폴리오 프로젝트입니다.
 >
 > **Project Focus** — 애플리케이션 개발 자체보다 **클라우드 인프라 설계, Kubernetes 운영, CI/CD 자동화 및 서비스 안정성 검증**에 중점을 둡니다.
+
+## Repository Structure
+
+```text
+yjeee-deployshop/
+├── .github/workflows/           # GitHub Actions 빌드·배포
+├── apps/                       # 서비스 소스·빌드 설정·Dockerfile
+│   ├── apigateway/
+│   ├── frontend/
+│   ├── member/
+│   ├── ordering/
+│   └── product/
+├── deploy/
+│   ├── argocd/
+│   │   ├── root-app.yml         # 하위 Application 등록
+│   │   └── applications/       # 서비스·플랫폼 배포 대상 선언
+│   └── k8s/
+│       ├── apps/               # 서비스별 Deployment·Service
+│       └── platform/
+│           ├── argocd/
+│           ├── ingress/
+│           ├── monitoring/
+│           ├── hpa/
+│           └── cluster-autoscaler/
+└── terraform/                  # AWS 인프라 루트 구성
+    └── modules/
+        ├── network/
+        ├── iam/
+        ├── eks/
+        ├── rds/
+        ├── ecr/
+        ├── s3/
+        └── github-oidc/
+```
+
+Docker 빌드 컨텍스트는 `apps/<서비스>`를 사용하고, Kubernetes 매니페스트는
+`deploy/k8s/apps/<서비스>`에서 관리합니다. Argo CD는
+`https://github.com/yjeee-ghub/deployshop.git`의 `main` 브랜치를 참조합니다.
+로컬 폴더명 `yjeee-deployshop`은 저장소 내부 경로에 포함하지 않습니다.
+
+Terraform 모듈 경로가 변경된 기존 작업 디렉토리에서는 사용 전에 `terraform init`으로
+모듈 캐시를 갱신해야 합니다. 모듈 블록 이름과 리소스 이름은 유지했습니다.
+
+---
 
 ## 01. System Architecture
 

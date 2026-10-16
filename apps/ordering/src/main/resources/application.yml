@@ -1,0 +1,13 @@
+spring:
+  profiles:
+    default: prod
+
+# Prometheus가 Pod의 8080 포트에서 앱 메트릭을 직접 수집하도록 노출합니다.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    prometheus:
+      enabled: true

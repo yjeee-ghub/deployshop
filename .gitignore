@@ -1,0 +1,45 @@
+# Terraform 캐시
+**/.terraform/
+
+# Terraform Local State
+*.tfstate
+*.tfstate.*
+
+# 민감한 변수값
+*.tfvars
+*.tfvars.json
+
+# Terraform 실행 계획
+*.tfplan
+tfplan
+
+# Terraform 오류·Override
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# AWS 자격 증명·환경변수
+**/.aws/
+.env
+.env.*
+*.pem
+*.key
+
+# 빌드 결과
+**/.gradle/
+**/build/
+**/node_modules/
+
+# 로컬 실행 도구
+*.exe
+
+# 개발 도구
+.idea/
+.vscode/
+
+# 임시 파일
+*.bak
+*.tmp
