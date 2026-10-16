@@ -1,186 +1,217 @@
-[README.md](https://github.com/user-attachments/files/33522366/README.md)
+[README.md](https://github.com/user-attachments/files/33522600/README.md)
 <div align="center">
 
-# yjeee-deployshop
+# 🛒 yjeee-deployshop
 
-### AWS 기반 MSA 쇼핑몰 · DevOps Portfolio
+### AWS Cloud-Native MSA · DevOps Engineering Portfolio
 
-서비스 개발부터 컨테이너 배포, 인프라 구성, 주문 흐름 검증까지 연결하는 프로젝트
-
-<p>
-  <img src="https://img.shields.io/badge/AWS-232F3E?style=flat-square&logo=amazonwebservices&logoColor=white" alt="AWS" />
-  <img src="https://img.shields.io/badge/Terraform-844FBA?style=flat-square&logo=terraform&logoColor=white" alt="Terraform" />
-  <img src="https://img.shields.io/badge/Kubernetes-326CE5?style=flat-square&logo=kubernetes&logoColor=white" alt="Kubernetes" />
-  <img src="https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker" />
-</p>
-
-**Infrastructure as Code · Container Deployment · End-to-End Validation**
+**Terraform IaC · Amazon EKS · CI/CD · GitOps · Monitoring**
 
 </div>
 
 ---
 
-쇼핑몰의 상품 조회와 주문을 소재로, **AWS 인프라 위에서 여러 서비스를 배포하고 전체 요청 흐름을 확인하는 DevOps 포트폴리오**입니다. 기능 구현과 함께 인프라 재현성, 서비스 간 연결, 데이터 반영, 운영 관점의 검증을 다룹니다.
+> 회원·상품·주문 기능을 갖춘 온라인 쇼핑몰을 AWS EKS에 배포하고, **인프라 구축부터 배포 자동화, 모니터링, 서비스 검증까지** 구현하는 DevOps 포트폴리오 프로젝트입니다.
+>
+> **Project Focus** — 애플리케이션 개발 자체보다 **클라우드 인프라 설계, Kubernetes 운영, CI/CD 자동화 및 서비스 안정성 검증**에 중점을 둡니다.
 
-> **Portfolio Focus**  
-> 인프라 구성 → 컨테이너 배포 → 내부 API 연결 → 주문 및 데이터 확인 → 운영 검증
+## 01. System Architecture
 
-## 01 · System Architecture
-
-사용자 요청, 서비스 처리, 데이터 저장을 계층별로 구분한 논리 구성도입니다. 세부 AWS 리소스와 실제 배포 설정은 인프라 코드 및 배포 구성에서 확인합니다.
+사용자 요청 흐름을 중심으로 **MSA 애플리케이션, 데이터 저장소, CI/CD, 인프라 자동화 및 모니터링**을 구분했습니다.
 
 ```mermaid
 flowchart TB
-    USER["User / Browser"]
+    USER(["👤 User / Browser"])
+    DNS["Route 53"]
+    NLB["Network Load Balancer"]
+    ING["Ingress NGINX · HTTPS"]
 
-    subgraph AWS["AWS · Application Environment"]
+    USER --> DNS --> NLB --> ING
+
+    subgraph EKS["☁️ Amazon EKS · Kubernetes"]
         direction TB
-        ENTRY["Application Entry Point"]
+        FRONT["Frontend"]
+        GW["API Gateway"]
 
-        subgraph K8S["Kubernetes · Container Workloads"]
-            direction TB
-            WEB["Web Application"]
-            subgraph SERVICES["Core Services"]
-                direction LR
-                MEMBER["Member Service"]
-                PRODUCT["Product Service"]
-                ORDER["Order Service"]
-            end
+        subgraph SERVICES["MSA Application Services"]
+            direction LR
+            MEMBER["👤 Member"]
+            PRODUCT["📦 Product"]
+            ORDER["🛒 Ordering"]
         end
 
-        DB[("MySQL · Application Data")]
-        OBS["CloudWatch / SNS<br/>구성 · 검증 대상"]
+        ING --> FRONT
+        ING --> GW
+        FRONT -->|"API 요청"| GW
+
+        GW --> MEMBER
+        GW --> PRODUCT
+        GW --> ORDER
+        ORDER -->|"재고 조회 / 차감"| PRODUCT
     end
 
-    USER --> ENTRY --> WEB
-    WEB --> MEMBER
-    WEB --> PRODUCT
-    WEB --> ORDER
-    ORDER -->|"내부 API 통신"| PRODUCT
-    MEMBER --> DB
-    PRODUCT --> DB
-    ORDER --> DB
-    K8S -. "로그 · 지표 수집 검증" .-> OBS
+    subgraph DATA["Data & Storage"]
+        direction LR
+        RDS[("RDS · MySQL")]
+        S3[("S3 · Images")]
+    end
 
-    classDef client fill:#F1F5F9,stroke:#64748B,color:#0F172A
-    classDef entry fill:#E0F2FE,stroke:#0284C7,color:#0C4A6E
-    classDef service fill:#EEF2FF,stroke:#6366F1,color:#312E81
-    classDef data fill:#ECFDF5,stroke:#10B981,color:#064E3B
-    classDef planned fill:#FFF7ED,stroke:#F59E0B,color:#7C2D12,stroke-dasharray:5 5
-    class USER client
-    class ENTRY,WEB entry
-    class MEMBER,PRODUCT,ORDER service
-    class DB data
-    class OBS planned
-    style AWS fill:#F8FAFC,stroke:#CBD5E1
-    style K8S fill:#FFFFFF,stroke:#93C5FD
-    style SERVICES fill:#F8FAFF,stroke:#C7D2FE
+    MEMBER --> RDS
+    PRODUCT --> RDS
+    ORDER --> RDS
+    PRODUCT --> S3
+
+    subgraph PIPELINE["CI/CD & GitOps"]
+        direction LR
+        GIT["GitHub"]
+        ACTIONS["GitHub Actions"]
+        ECR["Amazon ECR"]
+        ARGO["Argo CD"]
+        GIT --> ACTIONS --> ECR
+        GIT --> ARGO
+    end
+
+    subgraph OPERATIONS["Infrastructure & Monitoring"]
+        direction LR
+        TF["Terraform"]
+        PROM["Prometheus"]
+        GRAF["Grafana"]
+        CW["CloudWatch"]
+        SNS["Amazon SNS"]
+        PROM --> GRAF
+        CW --> SNS
+    end
+
+    ECR -.-> EKS
+    ARGO -.-> EKS
+    TF -.-> EKS
+    EKS -.-> PROM
+    EKS -.-> CW
+
+    classDef network fill:#dbeafe,stroke:#3b82f6,color:#1e40af,stroke-width:1.5px
+    classDef app fill:#ede9fe,stroke:#8b5cf6,color:#5b21b6,stroke-width:1.5px
+    classDef storage fill:#dcfce7,stroke:#22c55e,color:#166534,stroke-width:1.5px
+    classDef pipeline fill:#ffedd5,stroke:#f97316,color:#9a3412,stroke-width:1.5px
+    classDef monitor fill:#fce7f3,stroke:#ec4899,color:#9d174d,stroke-width:1.5px
+
+    class USER,DNS,NLB,ING network
+    class FRONT,GW,MEMBER,PRODUCT,ORDER app
+    class RDS,S3 storage
+    class GIT,ACTIONS,ECR,ARGO pipeline
+    class TF,PROM,GRAF,CW,SNS monitor
 ```
 
 ### Architecture 구성 요소
 
-| 구성 요소 | 역할 |
-| :--- | :--- |
-| **AWS** | 애플리케이션과 인프라를 구성하는 클라우드 환경 |
-| **Application Entry Point** | 사용자 요청이 애플리케이션으로 들어오는 진입 경로 |
-| **Web Application** | 상품 조회와 주문 등 사용자 인터페이스 제공 |
-| **Kubernetes / Docker** | 컨테이너 기반 서비스 배포 및 실행 환경 관리 |
-| **Core Services** | 회원·상품·주문 책임을 나누고 내부 API로 연결 |
-| **MySQL** | 회원·상품·주문 데이터의 영속 저장소; 도식은 논리적 저장 계층을 표현 |
-| **Terraform** | 인프라 구성을 코드로 관리하고 재현 가능한 환경 구성 지원 |
-| **CloudWatch / SNS** | 로그·지표 수집과 알림 연계를 위한 **구성 및 검증 대상** |
-
-## 02 · Core Services
-
-| Service | 주요 책임 | 확인할 연결 지점 |
+| 영역 | 핵심 기술 | 역할 |
 | :--- | :--- | :--- |
-| **Member** | 회원 정보와 사용자 식별에 필요한 데이터 관리 | 사용자 요청과 회원 데이터 연결 |
-| **Product** | 상품 정보 및 재고 관련 처리 | 상품 조회와 주문 시 상품 정보 확인 |
-| **Order** | 주문 요청 처리와 주문 데이터 관리 | 내부 API 통신, 처리 결과 및 데이터 반영 |
+| 🌐 **Traffic & Networking** | Route 53 → NLB → Ingress NGINX | 사용자 요청 라우팅 및 HTTPS 통신 |
+| ☸️ **Application** | Amazon EKS · MSA | 마이크로서비스 배포 및 내부 API 통신 |
+| 🗄️ **Data & Storage** | Amazon RDS · Amazon S3 | 주문·상품 데이터 및 이미지 저장 |
+| 🚀 **CI/CD & GitOps** | GitHub Actions · ECR · Argo CD | 컨테이너 이미지 빌드 및 배포 자동화 |
 
-> **핵심 관점 — 서비스 간 연결**  
-> 주문은 화면의 버튼 동작을 넘어, 내부 API 요청과 데이터 저장으로 이어집니다. 각 서비스의 처리 결과가 최종 응답과 저장 데이터에 일관되게 반영되는지 확인합니다.
+> **다이어그램 안내:** 실선은 사용자 요청·데이터 처리 흐름, 점선은 배포·운영·모니터링 관계입니다. CloudWatch 및 SNS는 최종 모니터링 구성·검증 대상으로 표시했습니다.
 
-## 03 · Order Processing Flow
+---
 
-주문 요청부터 결과 확인까지의 핵심 흐름입니다. 오류 응답, 재고 부족, 동시 주문의 정합성은 아래 검증 항목에서 함께 다룹니다.
+## 02. Core Services
+
+| 서비스 | 핵심 기능 |
+| :--- | :--- |
+| 👤 **Member Service** | 회원가입, 중복 회원 검사, 로그인, JWT 인증 및 토큰 재발급 |
+| 📦 **Product Service** | 상품 등록·목록·상세 조회, S3 이미지 업로드 및 재고 관리 |
+| 🛒 **Ordering Service** | 구매 요청, 재고 확인·차감 및 주문 데이터 저장 |
+| 🖥️ **Frontend / API Gateway** | 쇼핑몰 UI 제공 및 마이크로서비스 API 요청 전달 |
+
+---
+
+## 03. Order Processing Flow
+
+구매 버튼 클릭부터 **재고 확인 → 재고 차감 → 주문 저장**까지의 처리 과정입니다.
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    actor User as 사용자
-    participant Web as Web Application
-    participant Order as Order Service
-    participant Product as Product Service
-    participant DB as MySQL
+flowchart TD
+    START(["🛒 Purchase Button Click"])
+    API["01 · 주문 API 요청"]
+    STOCK["02 · 상품 재고 조회"]
+    CHECK{"재고 충분?"}
+    UPDATE["03 · 구매 수량만큼 재고 차감"]
+    SAVE[("04 · MySQL 주문 정보 저장")]
+    SUCCESS(["✓ 주문 완료"])
+    FAIL(["✕ 재고 부족 · 주문 거절"])
 
-    User->>Web: 상품 선택 및 주문 요청
-    Web->>Order: 주문 생성 요청
-    Order->>Product: 내부 API로 상품·재고 확인 및 처리 요청
-    Product->>DB: 상품·재고 데이터 조회 및 반영
-    DB-->>Product: 처리 결과
-    Product-->>Order: 상품 처리 결과
-    alt 주문 가능한 경우
-        Order->>DB: 주문 정보 저장
-        DB-->>Order: 저장 결과
-        Order-->>Web: 주문 처리 결과
-        Web-->>User: 주문 결과 표시
-    else 상품 처리 실패 또는 재고 부족
-        Order-->>Web: 주문 실패 응답
-        Web-->>User: 실패 사유 표시
-    end
+    START --> API --> STOCK --> CHECK
+    CHECK -->|"YES"| UPDATE --> SAVE --> SUCCESS
+    CHECK -->|"NO"| FAIL
+
+    classDef start fill:#dbeafe,stroke:#2563eb,color:#1e40af,stroke-width:2px
+    classDef process fill:#f1f5f9,stroke:#64748b,color:#334155,stroke-width:1.5px
+    classDef decision fill:#fef3c7,stroke:#d97706,color:#92400e,stroke-width:2px
+    classDef success fill:#dcfce7,stroke:#16a34a,color:#166534,stroke-width:2px
+    classDef fail fill:#fee2e2,stroke:#dc2626,color:#991b1b,stroke-width:2px
+
+    class START start
+    class API,STOCK,UPDATE,SAVE process
+    class CHECK decision
+    class SUCCESS success
+    class FAIL fail
 ```
 
-**검증 포인트:** 화면 응답뿐 아니라 주문 저장 결과, 재고 반영, 서비스 간 오류 전달을 함께 확인합니다. 분산 처리 중 실패 복구 방식과 동시성 제어의 보장 수준은 별도 구현 및 검증 근거가 필요합니다.
+**주문 시스템 핵심:** 주문 서비스가 상품 서비스와 **내부 API로 통신**하여 재고를 확인하고, 구매 수량만큼 차감한 뒤 주문 정보를 MySQL에 저장합니다. 재고가 부족하면 주문을 거절합니다.
 
-## 04 · Tech Stack & Tools
+> **구현 범위:** 재고 확인·차감 로직은 있지만, 동시 주문에 대한 별도 락·원자적 재고 차감 및 분산 트랜잭션 보장을 구현 완료 기능으로 표기하지 않습니다.
+
+---
+
+## 04. Tech Stack & Tools
 
 | 영역 | 기술 및 도구 | 활용 목적 |
 | :--- | :--- | :--- |
-| **Cloud** | AWS | 클라우드 인프라 및 서비스 실행 환경 구성 |
-| **Infrastructure as Code** | Terraform | 인프라 정의와 변경 이력 관리 |
-| **Container** | Docker | 애플리케이션 이미지 구성 및 실행 |
-| **Orchestration** | Kubernetes | 서비스 배포 및 워크로드 상태 관리 |
-| **Service Communication** | 내부 API 통신 | 서비스 간 요청과 응답 연결 |
-| **Database** | MySQL | 애플리케이션 데이터 저장 |
-| **Development** | VS Code | 코드·인프라·배포 설정 편집 |
-| **API Validation** | Postman | API 요청, 응답 및 오류 시나리오 확인 |
-| **Database Validation** | MySQL Workbench | 저장 데이터와 주문·재고 반영 결과 확인 |
-| **Version Control** | GitHub | 소스 코드와 인프라·배포 구성 이력 관리 |
-| **Observability** | CloudWatch / SNS | 로그·지표·알림 연계 **구성 및 검증 대상** |
+| ☁️ **Cloud & IaC** | **AWS**, **Terraform**, Amazon EKS, RDS, S3 | AWS 인프라 코드화 및 자동 구축 |
+| 🐳 **Containers** | **Docker**, **Kubernetes**, Amazon ECR, Ingress NGINX | 이미지 빌드, 배포 및 서비스 라우팅 |
+| 🚀 **CI/CD & GitOps** | **GitHub**, GitHub Actions, Argo CD | 형상 관리, 빌드 및 배포 자동화 |
+| 📊 **Monitoring** | Prometheus, Grafana, **CloudWatch**, **Amazon SNS** | 메트릭 시각화, AWS 경보 및 알림 구성 |
+| 🛠️ **Development & Testing** | **VS Code**, **Postman**, **MySQL Workbench** | 인프라 코드 작성, API 테스트 및 DB 검증 |
 
-## 05 · End-to-End Validation
+**Networking & Security:** Route 53 · NLB · cert-manager · HTTPS/TLS
 
-**사용자 요청 → 서비스 간 통신 → 데이터 반영 → 최종 응답**을 하나의 흐름으로 확인합니다.
+---
 
-| 검증 영역 | 확인 내용 | 확인 수단 |
-| :--- | :--- | :--- |
-| **사용자 흐름** | 상품 조회부터 주문 결과 표시까지 연결되는지 확인 | 브라우저 |
-| **API 연결** | 정상 요청, 잘못된 입력, 서비스 오류의 응답 확인 | Postman |
-| **데이터 반영** | 주문 저장 결과와 상품·재고 변경 확인 | MySQL Workbench |
-| **동시 주문** | 동일 상품의 동시 구매 시 재고 초과 판매와 데이터 충돌 여부 검증 | 동시 요청 및 DB 결과 대조 |
-| **배포 상태** | 워크로드 실행 상태와 서비스 접근 경로 확인 | Kubernetes 상태 및 애플리케이션 응답 |
-| **장애 상황** | 내부 API 실패 시 오류 전달 및 데이터 불일치 여부 확인 | 실패 시나리오와 로그·DB 대조 |
+## 05. End-to-End Validation
 
-> 이 표는 **검증 범위**를 나타냅니다. 동시성 보장, 장애 복구, 성능 수치 등의 완료 여부는 실제 테스트 결과와 증적을 기준으로 판단합니다.
+### 🌐 Online Shopping Website → 📮 Postman → 🗄️ MySQL Workbench
 
-## 06 · Monitoring & Operations
+웹 화면에서 발생한 주문이 **API 처리와 실제 데이터베이스 변경**으로 이어지는지 단계별로 검증합니다.
 
-운영 관점에서는 **서비스 상태 → 요청 처리 로그 → 데이터 결과**를 연결해 문제 지점을 추적합니다.
+| 단계 | 검증 도구 | 검증 항목 |
+| :---: | :--- | :--- |
+| **01** | 🌐 **온라인 쇼핑몰** | 회원 로그인, 상품 목록·상세 조회, 구매 버튼 동작 및 주문 결과 |
+| **02** | 📮 **Postman** | 회원 인증·상품 조회·주문 생성 API, 성공 및 재고 부족 응답 |
+| **03** | 🗄️ **MySQL Workbench** | 주문 레코드 생성 여부, 상품 재고 차감 전후 데이터 비교 |
 
-| 운영 항목 | 확인 방향 |
+**검증 포인트:** 사용자 화면의 구매 요청부터 HTTP API 응답, MySQL의 주문 데이터 및 재고 수량 변화까지 연결해 확인합니다.
+
+---
+
+## 06. Monitoring & Operations
+
+| 도구 | 목적 |
 | :--- | :--- |
-| **Workload Health** | Kubernetes 워크로드 상태, 재시작 여부, 서비스 접근 상태 확인 |
-| **Application Logs** | 주문 처리 및 내부 API 통신의 오류 지점 확인 |
-| **Configuration History** | Terraform과 배포 설정의 변경 사항을 GitHub 이력으로 관리 |
-| **CloudWatch** | 로그·지표 수집 경로와 조회 가능 여부 **구성 및 검증 대상** |
-| **SNS** | 알림 전달 경로 및 테스트 알림 수신 여부 **구성 및 검증 대상** |
+| **Prometheus** | Kubernetes 및 서비스 메트릭 수집 |
+| **Grafana** | Pod·클러스터 상태 대시보드 시각화 |
+| **Amazon CloudWatch** | AWS 리소스 지표 관측 및 경보 구성 |
+| **Amazon SNS** | CloudWatch 경보 발생 시 알림 전달 |
+
+> **진행 상태:** CloudWatch 경보 및 SNS 알림은 최종 모니터링·검증 단계의 구성 대상이며, 실제 알림 전달 테스트 완료 여부는 별도 확인이 필요합니다.
 
 ---
 
 <div align="center">
 
-**yjeee-deployshop**  
-AWS 인프라와 서비스 배포, 주문 흐름 검증을 연결하는 DevOps 포트폴리오
+**PROJECT WORKFLOW**
+
+`Terraform IaC` → `EKS Deployment` → `CI/CD & GitOps` → `Monitoring` → `End-to-End Validation`
+
+<sub>yjeee-deployshop · DevOps Engineering Portfolio</sub>
 
 </div>
