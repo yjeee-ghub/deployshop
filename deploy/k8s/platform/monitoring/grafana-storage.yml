@@ -1,0 +1,31 @@
+# EBS CSI 드라이버가 암호화된 gp3 볼륨을 동적으로 생성합니다.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: grafana-gp3
+provisioner: ebs.csi.aws.com
+parameters:
+  type: gp3
+  encrypted: "true"
+  csi.storage.k8s.io/fstype: ext4
+# Pod가 배치될 가용 영역에 볼륨을 생성합니다.
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+# PVC 삭제 시에도 EBS를 보존합니다. 실습 종료 후 잔여 볼륨은 별도 정리합니다.
+reclaimPolicy: Retain
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-data
+  namespace: monitoring
+  annotations:
+    # Git 또는 Application 삭제로 PVC가 자동 삭제되지 않도록 합니다.
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: grafana-gp3
+  resources:
+    requests:
+      storage: 5Gi

@@ -5,6 +5,9 @@ metadata:
   namespace: monitoring
 spec:
   replicas: 1
+  # 단일 EBS 볼륨을 사용하는 이전 Pod 종료 후 새 Pod를 생성합니다.
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: grafana
@@ -13,6 +16,10 @@ spec:
       labels:
         app: grafana
     spec:
+      # EBS 데이터 디렉터리 쓰기 권한을 부여합니다.
+      securityContext:
+        fsGroup: 472
+        fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: grafana
           image: grafana/grafana
@@ -22,11 +29,19 @@ spec:
           # 컨테이너가 사용할수 있는 리소스의 최대치
             limits:
               cpu: "1"
-              memory: "500Mi"
+              memory: "1Gi"
           # 컨테이너가 시작될떄 보장받아야 하는 최소 자원
             requests:
               cpu: "0.5"
-              memory: "250Mi"
+              memory: "512Mi"
+          # 계정·데이터 소스·대시보드를 EBS에 보존합니다.
+          volumeMounts:
+            - name: grafana-data
+              mountPath: /var/lib/grafana
+      volumes:
+        - name: grafana-data
+          persistentVolumeClaim:
+            claimName: grafana-data
 ---
 apiVersion: v1
 kind: Service
