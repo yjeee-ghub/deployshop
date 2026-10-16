@@ -1,0 +1,182 @@
+[
+  {
+    "original": "ArgoCD replicas 복구 실습1.png",
+    "file": "evidence-01.png"
+  },
+  {
+    "original": "ArgoCD replicas 복구 실습2.png",
+    "file": "evidence-02.png"
+  },
+  {
+    "original": "ArgoCD.png",
+    "file": "evidence-03.png"
+  },
+  {
+    "original": "Cluster Autoscaler가 ASG의 노드 수를 조절할 수 있도록 AWS 권한을 연결.png",
+    "file": "evidence-04.png"
+  },
+  {
+    "original": "HPA 확장_부하테스트1.png",
+    "file": "evidence-05.png"
+  },
+  {
+    "original": "HPA 확장_부하테스트2.png",
+    "file": "evidence-06.png"
+  },
+  {
+    "original": "Postman_Workbench_test.png",
+    "file": "evidence-07.png"
+  },
+  {
+    "original": "Postman_Workbench_test1.png",
+    "file": "evidence-08.png"
+  },
+  {
+    "original": "Postman_Workbench_test10.png",
+    "file": "evidence-09.png"
+  },
+  {
+    "original": "Postman_Workbench_test11.png",
+    "file": "evidence-10.png"
+  },
+  {
+    "original": "Postman_Workbench_test11_1.png",
+    "file": "evidence-11.png"
+  },
+  {
+    "original": "Postman_Workbench_test11_2.png",
+    "file": "evidence-12.png"
+  },
+  {
+    "original": "Postman_Workbench_test11_3.png",
+    "file": "evidence-13.png"
+  },
+  {
+    "original": "Postman_Workbench_test2.png",
+    "file": "evidence-14.png"
+  },
+  {
+    "original": "Postman_Workbench_test3.png",
+    "file": "evidence-15.png"
+  },
+  {
+    "original": "Postman_Workbench_test4.png",
+    "file": "evidence-16.png"
+  },
+  {
+    "original": "Postman_Workbench_test5.png",
+    "file": "login-redacted.png"
+  },
+  {
+    "original": "Postman_Workbench_test6.png",
+    "file": "evidence-18.png"
+  },
+  {
+    "original": "Postman_Workbench_test7.png",
+    "file": "evidence-19.png"
+  },
+  {
+    "original": "Postman_Workbench_test8.png",
+    "file": "evidence-20.png"
+  },
+  {
+    "original": "Postman_Workbench_test9.png",
+    "file": "evidence-21.png"
+  },
+  {
+    "original": "RDS의 공개 접근은 유지하면서 외부 PC의 MySQL 접속 허용 범위만 제한.png",
+    "file": "evidence-22.png"
+  },
+  {
+    "original": "RDS의 공개 접근은 유지하면서 외부 PC의 MySQL 접속 허용 범위만 제한2.png",
+    "file": "evidence-23.png"
+  },
+  {
+    "original": "RDS의 공개 접근은 유지하면서 외부 PC의 MySQL 접속 허용 범위만 제한3.png",
+    "file": "evidence-24.png"
+  },
+  {
+    "original": "cloudewatch1.png",
+    "file": "evidence-25.png"
+  },
+  {
+    "original": "cloudewatch2.png",
+    "file": "evidence-26.png"
+  },
+  {
+    "original": "cloudewatch3.png",
+    "file": "evidence-27.png"
+  },
+  {
+    "original": "cloudewatch_test1.png",
+    "file": "evidence-28.png"
+  },
+  {
+    "original": "cloudewatch_test2.png",
+    "file": "evidence-29.png"
+  },
+  {
+    "original": "cloudewatch_test3.png",
+    "file": "evidence-30.png"
+  },
+  {
+    "original": "cloudwatch_구독이메일_메세지테스트.png",
+    "file": "sns-email-redacted.png"
+  },
+  {
+    "original": "cloudwatch_로그스트림확인.png",
+    "file": "evidence-32.png"
+  },
+  {
+    "original": "github1.png",
+    "file": "evidence-33.png"
+  },
+  {
+    "original": "github2.png",
+    "file": "evidence-34.png"
+  },
+  {
+    "original": "grafana_ommkilled오류 해결1.png",
+    "file": "evidence-35.png"
+  },
+  {
+    "original": "grafana검증1.png",
+    "file": "evidence-36.png"
+  },
+  {
+    "original": "grafana검증2.png",
+    "file": "evidence-37.png"
+  },
+  {
+    "original": "prometheus_web검증.png",
+    "file": "evidence-38.png"
+  },
+  {
+    "original": "prometheus_web검증2.png",
+    "file": "evidence-39.png"
+  },
+  {
+    "original": "prometheus_web검증3.png",
+    "file": "evidence-40.png"
+  },
+  {
+    "original": "shop_imag2.png",
+    "file": "evidence-41.png"
+  },
+  {
+    "original": "shop_imag2_1.png",
+    "file": "evidence-42.png"
+  },
+  {
+    "original": "shop_image1.png",
+    "file": "evidence-43.png"
+  },
+  {
+    "original": "shop_image3.png",
+    "file": "evidence-44.png"
+  },
+  {
+    "original": "shop_s3_object.png",
+    "file": "evidence-45.png"
+  }
+]

@@ -1,0 +1,30 @@
+﻿Deployshop 최종 실행·검증 체크리스트 (2026-10-16)
+
+표시 기준: [완료]는 제공된 실행 결과·캡처·사용자 확인을 기준으로 합니다.
+개별 증거 수준과 시점은 docs/VALIDATION.md에 구분했습니다.
+
+[완료] 01. Terraform 기본 인프라 적용
+[완료] 02. EKS kubeconfig 및 Ready 노드 확인
+[완료] 03. 애플리케이션 Secret 연결
+[완료] 04. Docker 이미지 빌드·ECR push
+[완료] 05. 회원·상품·주문·Gateway·frontend 배포
+[완료] 06. Ingress NGINX·NLB·DNS 연결
+[완료] 07. cert-manager·HTTPS 확인
+[완료] 08. GitHub Actions 자동 배포 성공
+[완료] 09. Argo CD root·하위 Application 연결
+[완료] 10. frontend replicas self-heal 확인
+[완료] 11. Metrics Server 및 HPA 설정
+[완료] 12. OIDC·IRSA·Cluster Autoscaler 연결
+[완료] 13. 상품 Pod 1→5·노드 2→3 부하 확장 확인
+[완료] 14. 부하 삭제·Pod 5→1 확인; 노드 최소2 복귀는 사용자 확인
+[완료] 15. Prometheus 노드·앱 수집 및 Grafana 표시
+[완료] 16. Grafana OOM 조치·EBS PVC·재시작 후 설정 유지 사용자 확인
+[완료] 17. monitoring 인증서 관리 충돌 해결 사용자 확인
+[완료] 18. CloudWatch 제어영역 로그·수동 ALARM→SNS 이메일 경로 확인
+[완료] 19. 웹·API·DB 주문 및 재고 부족 거절 대조
+[완료] 20. Workbench 접근 /32 제한·재접속 확인
+[완료] 21. README·검증·트러블슈팅·복습 노트·공개 증거 사본 정리
+[미실행] 22. 최종 문서 검토 후 Git commit/push
+
+CPU 임계값 실제 초과, 동시 주문 정합성, 결제, 멀티 AZ 장애 복구,
+주문 SNS 연동은 완료 항목에 포함하지 않습니다.
