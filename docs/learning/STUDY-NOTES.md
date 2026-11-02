@@ -1,18 +1,18 @@
 # Deployshop 구축·검증 복습 노트
 
-작성 기준: 2026-10-16 / Windows PowerShell / C:\yjeee-deployshop
+환경: Windows PowerShell · AWS CLI 프로필 `aws-yjeee` · 리전 `ap-northeast-2`.
 
-수업 HWP·TXT의 애플리케이션과 EKS 실습 흐름에 Terraform, CloudWatch/SNS, 애플리케이션 메트릭, Grafana EBS 보존을 연결했습니다. 아래 명령은 사용자가 수행한 절차를 학습용으로 정리한 것입니다. 문서 작성 중 원격 리소스에 명령을 실행하지 않았습니다. 새 환경에서는 계정·리전·도메인·OIDC·리소스 이름을 먼저 바꿉니다. 예시의 비밀번호·키·토큰은 실제 값을 제공하지 않습니다.
-
-실제 증거와 결과 판정은 [실행 및 검증 결과](../VALIDATION.md)을 우선합니다. 이 노트의 정상 결과는 기대 상태를 설명하는 것이며 모든 명령 출력의 캡처가 존재한다는 뜻은 아닙니다.
+[실행 및 검증 결과](../VALIDATION.md).
 
 ## 1. 전체 연결 구조
 
-브라우저 → Route 53 → NLB → Ingress NGINX → frontend 또는 API Gateway → member/product/ordering → RDS의 흐름입니다. 상품 이미지는 S3에 저장합니다.
+브라우저 → Route 53 → NLB → Ingress NGINX → Frontend / API Gateway → Member·Product·Ordering → RDS. 상품 이미지는 S3에 저장.
 
-배포는 GitHub Actions가 이미지 빌드·ECR push·kubectl 배포를 담당하고, Argo CD가 Git의 Kubernetes 선언과 실제 상태를 비교합니다. HPA는 Pod 수를, Cluster Autoscaler는 노드 수를 조절합니다. Prometheus는 노드·앱 메트릭을 수집하고 Grafana는 이를 표시합니다. CloudWatch는 EKS control plane 로그와 EC2 CPU 지표를 확인하고 SNS로 알림을 보냅니다.
+- 배포: Actions 이미지 빌드·ECR push·kubectl 배포, Argo CD 선언 동기화.
+- 확장: HPA로 Pod 수, Cluster Autoscaler로 노드 수 조절.
+- 관측: Prometheus 메트릭 수집·Grafana 시각화, CloudWatch 제어 영역 로그·EC2 CPU 경보·SNS 알림.
 
-두 배포 도구가 공존하는 실습 구성입니다. Actions가 이미지 SHA를 Git manifest에 기록하는 완전한 GitOps 파이프라인은 구현하지 않았습니다.
+Actions 직접 배포와 Argo CD 병행. 이미지 SHA를 Git manifest에 반영하는 GitOps 파이프라인은 미구현.
 
 ## 2. 사전 도구·AWS 프로필
 
@@ -26,12 +26,12 @@ git --version
 aws sts get-caller-identity --profile aws-yjeee
 ```
 
-- `Set-Location`: 현재 작업 폴더를 변경합니다. 상대 경로 명령의 기준입니다.
-- `sts get-caller-identity`: 실제 인증된 AWS 계정과 principal을 확인합니다. 권한이 모두 충분하다는 검사는 아닙니다.
-- `--profile aws-yjeee`: 로컬 AWS CLI 설정의 해당 프로필을 사용합니다.
-- Docker는 CLI 설치뿐 아니라 Docker Desktop 엔진이 실행 중이어야 합니다.
+- `Set-Location`: 작업 폴더 변경. 상대 경로의 기준.
+- `sts get-caller-identity`: 인증된 AWS 계정·principal 조회. 개별 작업 권한은 별도 확인.
+- `--profile aws-yjeee`: 로컬 AWS CLI의 해당 프로필 선택.
+- Docker Desktop 엔진 실행 상태 확인.
 
-JDK 17은 backend 빌드에 사용합니다. Docker의 builder stage에도 JDK 17이 있으므로 로컬 JDK와 컨테이너 빌드 환경을 구분합니다.
+Backend 빌드: JDK 17. 로컬 빌드와 Docker builder stage의 실행 환경 구분.
 
 ## 3. Terraform 최초 적용
 
@@ -54,21 +54,21 @@ terraform output
 | apply | 승인한 인프라 변경 실행 | Apply complete |
 | output | 모듈이 외부로 내보낸 값 확인 | cluster·RDS·ECR·S3 정보 |
 
-`plan`이 성공해도 실제 생성 시 권한·용량·네트워크 문제로 실패할 수 있습니다. `apply` 결과와 콘솔 상태를 함께 확인합니다. 처음 생성과 이미 생성된 환경에서의 재적용을 구분합니다.
+`plan` 성공 후에도 실제 생성 과정의 권한·용량·네트워크 오류 가능. `apply` 결과·콘솔 상태 대조 필요.
 
-Root module이 network·iam·eks·rds·ecr·s3 child module을 연결합니다. CloudWatch/SNS는 root의 monitoring.tf에 정의합니다. Terraform state는 로컬이며 GitHub 원격 저장소와 다릅니다. state를 지우면 AWS 리소스가 삭제되는 것이 아니라 Terraform이 관리 정보를 잃게 됩니다.
+Root module → network·iam·eks·rds·ecr·s3 Child module 연결. CloudWatch/SNS는 root `monitoring.tf`에서 관리. Local State는 실제 자원과 코드의 연결 정보이며, 삭제 시 관리 정보 손실.
 
-`terraform.tfvars`, `*.tfstate*`, `.terraform`, credential 파일은 Git에 올리지 않습니다. `sensitive = true`는 일반 출력 표시를 숨기는 기능이며 state 자체를 암호화하는 기능은 아닙니다.
+`terraform.tfvars`·`*.tfstate*`·`.terraform`·credential 파일은 Git 추적 제외. `sensitive = true`는 일반 출력 가림이며 State 암호화와 별개.
 
 ### 네트워크와 데이터 저장소
 
-- VPC 10.20 대역, 2개 AZ, public 2개·private app 2개·private DB 2개 subnet을 정의했습니다.
-- EKS 노드는 private app subnet에 배치하고 NAT로 외부 통신합니다.
-- RDS는 이 실습에서 public subnet과 공개 접근을 사용합니다. private DB subnet이 정의돼 있다는 사실과 RDS가 실제 그곳에 배치됐다는 주장은 다릅니다.
-- RDS는 Single-AZ, 암호화·7일 백업 보존을 사용합니다.
-- Workbench 접속은 외부 PC 공인 IP/32와 EKS 측 보안 그룹 규칙으로 구분합니다.
+- VPC 10.20 대역, 2개 AZ, public 2개·private app 2개·private DB 2개 subnet을 정의.
+- EKS 노드는 private app subnet에 배치하고 NAT로 외부 통신.
+- RDS: public subnet·공개 접근 사용. private DB subnet은 정의만 존재하며 실제 RDS 배치에는 미사용.
+- RDS는 Single-AZ, 암호화·7일 백업 보존을 사용.
+- Workbench 접속은 외부 PC 공인 IP/32와 EKS 측 보안 그룹 규칙으로 구분.
 
-`workbench_allowed_cidr`를 일시 전체 허용한 뒤 최종 PC `/32`로 되돌려 apply하고 재접속했습니다. PC 공인 IP가 바뀌면 CIDR도 갱신해야 합니다.
+`workbench_allowed_cidr`: 임시 전체 허용 → 최종 PC `/32` 적용·재접속 확인. PC 공인 IP 변경 시 CIDR 갱신 필요.
 
 ## 4. EKS 접속과 Secret
 
@@ -80,16 +80,16 @@ kubectl get nodes
 kubectl create namespace soldesk
 ```
 
-`update-kubeconfig`는 로컬 접속 정보를 작성합니다. 클러스터 생성 명령이 아닙니다. `get nodes`에서 Ready가 확인돼야 다음 단계의 배치를 판단할 수 있습니다. 이미 있는 namespace를 다시 create하면 AlreadyExists가 나오므로 실패 원인을 새 장애로 오해하지 않습니다.
+`update-kubeconfig`: 기존 클러스터의 로컬 접속 정보 갱신. `get nodes`로 Ready 확인. 기존 namespace 재생성 시 `AlreadyExists` 발생.
 
-애플리케이션 Secret의 이름과 키는 다음과 같습니다.
+애플리케이션 Secret:
 
 | Secret | 키 | 소비 목적 |
 |---|---|---|
 | my-app-secrets | DB_HOST, DB_PW | RDS 연결 |
 | aws-secret | AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY | 상품 이미지 S3 업로드 |
 
-값을 로컬 환경 변수에 준비했다면 다음처럼 사용할 수 있습니다. 값 준비 단계와 출력·화면 공유는 분리합니다.
+로컬 환경 변수로 Secret 생성:
 
 ```powershell
 kubectl create secret generic my-app-secrets -n soldesk --from-literal=DB_HOST="$env:DEPLOYSHOP_DB_HOST" --from-literal=DB_PW="$env:DEPLOYSHOP_DB_PW"
@@ -97,23 +97,23 @@ kubectl create secret generic aws-secret -n soldesk --from-literal=AWS_ACCESS_KE
 kubectl get secrets -n soldesk
 ```
 
-이는 최초 생성 예시입니다. 환경 변수가 빈 값인지 먼저 로컬에서 확인하고 기존 Secret 갱신 방식은 별도로 선택합니다. `kubectl get secret -o yaml`은 base64 값이 노출되므로 공개 증거로 사용하지 않습니다. Kubernetes Secret의 base64는 암호화가 아닙니다.
+최초 생성 전 환경 변수 값 확인. 기존 Secret은 별도 갱신 필요. Secret YAML은 Git 추적 제외. base64 인코딩은 암호화와 별개.
 
-상품 이미지 전용 IAM 키는 Terraform의 sensitive 출력에서 받아 사용했습니다. 계정 관리용 aws-yjeee 키를 상품 서비스에 재사용하지 않았습니다. S3 정책은 products prefix에 대한 Put/Get, 필요한 ListBucket 범위로 구성했고 공개 읽기는 상품 객체 GetObject에 한정했습니다.
+상품 이미지 전용 IAM 키는 Terraform sensitive 출력으로 전달. 계정 관리용 키와 분리. `products/` Put/Get·필요한 ListBucket 권한 적용, 공개 읽기는 상품 객체 GetObject로 제한.
 
 ## 5. Docker·ECR·앱 배포
 
-ECR은 컨테이너 이미지를 저장하고 EKS는 그 이미지를 실행합니다. 이미지가 ECR에 있다는 사실만으로 Pod가 생성되지는 않습니다.
+ECR: 이미지 저장. EKS: 이미지 실행. ECR push 후 Deployment 적용·Pod 교체 필요.
 
 ```powershell
 cmd /c "aws ecr get-login-password --region ap-northeast-2 --profile aws-yjeee | docker login --username AWS --password-stdin 193644343848.dkr.ecr.ap-northeast-2.amazonaws.com"
 ```
 
-정상 출력은 `Login Succeeded`입니다. 실습에서 PowerShell pipeline은 400이 발생했고 cmd native pipeline은 성공했습니다. 비밀번호 문자열 처리 차이로 추정하며 원인을 단정하지 않습니다.
+`Login Succeeded` 확인. PowerShell pipeline에서 400 발생, cmd native pipeline으로 로그인 성공. 문자열 처리 원인은 미확정.
 
-backend Dockerfile은 JDK 17에서 Gradle bootJar를 만들고 JRE 17 실행 이미지에 jar를 복사합니다. frontend는 NGINX로 정적 파일을 제공합니다. 저장소의 Dockerfile 위치를 기준으로 build context를 지정해야 합니다.
+Backend: JDK 17로 Gradle bootJar 빌드 → JRE 17 이미지로 실행. Frontend: NGINX로 정적 파일 제공. Dockerfile 위치에 맞는 build context 지정.
 
-ECR repository는 apigateway, member-service, product-service, ordering-service, frontend-service입니다. 최종 워크플로가 빌드·push를 수행하며 태그는 latest입니다. 동일 태그가 새 이미지로 바뀌므로 커밋별 이미지 추적·롤백이 제한됩니다.
+ECR repository: apigateway·member-service·product-service·ordering-service·frontend-service. Actions로 빌드·push, 태그는 `latest`. 같은 태그 덮어쓰기로 커밋별 추적·롤백에 제약.
 
 ```powershell
 kubectl apply -f deploy/k8s/apps/apigateway
@@ -125,13 +125,11 @@ kubectl get deployment,pod,service -n soldesk
 kubectl describe pod -n soldesk <Pod이름>
 ```
 
-Deployment는 원하는 Pod 상태를 유지하고 Service는 Pod 변경과 무관한 내부 주소를 제공합니다. `Running`만 보지 말고 READY 1/1과 restart 횟수, Events도 봅니다. `/health` probe는 프로세스 상태 확인 용도이며 실제 구매 기능 전체의 성공을 보장하지는 않습니다.
+Deployment는 원하는 Pod 상태를 유지하고 Service는 Pod 변경과 무관한 내부 주소를 제공. `Running`만 보지 말고 READY 1/1과 restart 횟수, Events도 확인. `/health` probe는 프로세스 상태 확인 용도이며 실제 구매 기능 전체의 성공을 보장하지 않음.
 
-backend CPU request 0.5, limit 1은 각각 스케줄링 기준과 사용 상한입니다. HPA의 CPU 사용률 계산은 request를 기준으로 하므로 200%는 노드 CPU 전체 200%가 아니라 0.5 CPU의 두 배 사용을 의미합니다.
+backend CPU request 0.5, limit 1은 각각 스케줄링 기준과 사용 상한. HPA의 CPU 사용률 계산은 request를 기준으로 하므로 200%는 노드 CPU 전체 200%가 아니라 0.5 CPU의 두 배 사용을 의미.
 
 ## 6. GitHub Actions와 Git 초기 연결
-
-실습에서 Git을 설치하고 로컬 main을 초기화한 뒤 기존 원격 이력을 fetch해 연결했습니다. 파일을 유지하기 위해 mixed reset을 사용했던 이력은 새로 clone한 환경의 필수 절차가 아닙니다. 검토 없이 reset을 반복하지 않습니다. force push는 사용하지 않았습니다.
 
 ```powershell
 git status
@@ -139,11 +137,11 @@ git remote -v
 git branch -vv
 ```
 
-실제 저장소는 `https://github.com/yjeee-ghub/deployshop.git`입니다. `.github/workflows/deploy_ordermsa_with_k8s.yml`이 push 시 변경 경로를 검사하고 build·ECR push·kubectl apply·rollout restart를 수행합니다.
+`.github/workflows/deploy_ordermsa_with_k8s.yml`이 push 시 변경 경로를 검사하고 build·ECR push·kubectl apply·rollout restart를 수행.
 
-Repository Secrets의 `AWS_KEY`, `AWS_SECRET`은 워크플로 AWS 인증용입니다. EKS Access Entry에 해당 IAM principal과 접근 정책이 연결돼야 합니다. AWS IAM 인증 성공과 Kubernetes 권한은 별개 확인 대상입니다.
+Actions Secrets `AWS_KEY`·`AWS_SECRET`: AWS 인증용. EKS Access Entry·접근 정책으로 클러스터 권한 연결. AWS 인증과 Kubernetes 권한은 각각 확인.
 
-Actions Success 캡처는 제공됐습니다. 경고가 없는 실행이라는 뜻은 아닙니다. Node 런타임·runner 전환 안내는 실행 당시 annotation으로 남아 있고 재현 시 dependency 버전 검토가 필요합니다.
+Actions Workflow 성공 확인. Node 런타임·runner 전환 안내는 의존성 업데이트 시 확인.
 
 ## 7. NLB·Ingress·DNS·TLS
 
@@ -158,11 +156,11 @@ kubectl get clusterissuer my-issuer
 kubectl get certificate -n soldesk
 ```
 
-NGINX LoadBalancer Service가 NLB를 연결합니다. Route 53에서 NLB DNS로 server·argo·prometheus·grafana CNAME을 구성했습니다. 각 Ingress의 host가 DNS 이름과 일치해야 합니다.
+NGINX LoadBalancer Service → NLB 연결. Route 53의 server·argo·prometheus·grafana 호스트 → NLB 연결. DNS 이름과 Ingress host 일치 필요.
 
-`/`는 frontend, 서비스 접두 경로는 API Gateway로 전달됩니다. Gateway가 StripPrefix로 접두 경로를 제거해 backend로 라우팅합니다. 경로가 어디서 변경되는지 확인하면 404의 발생 위치를 구분하는 데 도움이 됩니다.
+`/`는 frontend, 서비스 접두 경로는 API Gateway로 전달됨. Gateway가 StripPrefix로 접두 경로를 제거해 backend로 라우팅. 경로가 어디서 변경되는지 확인하면 404의 발생 위치를 구분하는 데 도움이 됨.
 
-cert-manager의 ClusterIssuer `my-issuer`는 Let's Encrypt HTTP-01을 사용합니다. namespace별 Certificate가 TLS Secret을 만들고 Ingress가 참조합니다. 인증서 Ready=True, 실제 HTTPS 접속, 브라우저의 호스트 일치를 함께 확인합니다.
+cert-manager의 ClusterIssuer `my-issuer`는 Let's Encrypt HTTP-01을 사용. namespace별 Certificate가 TLS Secret을 만들고 Ingress가 참조. 인증서 Ready=True, 실제 HTTPS 접속, 브라우저의 호스트 일치를 함께 확인.
 
 ## 8. Argo CD와 self-heal
 
@@ -175,22 +173,22 @@ kubectl apply -f deploy/argocd/root-app.yml
 kubectl get applications -n argocd
 ```
 
-server-side apply는 대형 CRD의 client annotation 크기 문제를 피하기 위해 사용했습니다. stable URL은 고정 버전이 아닙니다. 실습 화면에서 Argo CD v3.5.5가 확인됐습니다.
+대형 CRD annotation 크기 제한 회피를 위해 server-side apply 사용. Argo CD v3.5.5 확인. `stable` URL은 버전 미고정.
 
-`argocd-cmd-params-cm`에 server.insecure=true를 설정해 TLS 종료는 Ingress에서 담당하도록 했습니다. Argo CD의 초기 admin 비밀번호는 로컬에서 확인하고 변경했습니다.
+`server.insecure=true`: Ingress에서 TLS 종료, Argo 서버로 HTTP 전달. 초기 admin 비밀번호 변경.
 
-- root msa-root는 applications 폴더를 읽고 9개의 자식 Application을 생성·관리합니다.
-- Synced는 Git 선언과 live 리소스의 일치 상태입니다.
-- Healthy는 리소스 health 판정입니다. 둘은 별개입니다.
-- selfHeal은 사람이 변경한 live drift를 Git 상태로 되돌립니다.
-- prune은 Git에서 제거한 리소스를 삭제할 수 있습니다. PVC에는 별도 보호 설정을 넣었습니다.
+- root msa-root는 applications 폴더를 읽고 9개의 자식 Application을 생성·관리.
+- Synced는 Git 선언과 live 리소스의 일치 상태.
+- Healthy는 리소스 health 판정. 둘은 별개.
+- selfHeal: live drift를 Git 선언 상태로 복구.
+- prune: Git에서 제거한 리소스 삭제. PVC는 별도 보호 설정 적용.
 
 ```powershell
 kubectl scale deployment frontend-depl --replicas=2 -n soldesk
 kubectl get deployment frontend-depl -n soldesk -w
 ```
 
-frontend를 2개로 수동 변경한 뒤 1개로 복구되는 캡처를 확보했습니다. `-w`는 변경을 계속 보여 주며 Ctrl+C로 종료합니다. backend HPA 대상의 replicas는 ignore와 RespectIgnoreDifferences를 사용해 HPA와 Argo CD의 경쟁을 줄였습니다.
+Frontend 수동 replicas `2 → 1` self-heal 확인. `-w`로 변경 관찰, Ctrl+C로 종료. Backend는 HPA와 Argo CD의 replicas 제어 충돌 발생 → `/spec/replicas` 제외·`RespectIgnoreDifferences=true` 적용. HPA 미사용 Frontend는 Git 고정값 유지.
 
 ## 9. HPA와 Metrics Server
 
@@ -202,29 +200,29 @@ kubectl apply -f deploy/k8s/platform/hpa
 kubectl get hpa -n soldesk
 ```
 
-Metrics Server는 HPA와 kubectl top에 필요한 리소스 메트릭을 제공합니다. Prometheus와 역할이 다릅니다. HPA는 member/product/ordering 목표 CPU 30%, gateway 70%, min 1 max 5입니다.
+Metrics Server는 HPA와 kubectl top에 필요한 리소스 메트릭을 제공. Prometheus와 역할이 다름. HPA는 member/product/ordering 목표 CPU 30%, gateway 70%, min 1 max 5.
 
-TARGETS에 unknown이 잠깐 보이면 새 Pod의 메트릭 수집 대기를 고려합니다. 계속되면 Metrics Server 상태와 Pod request 설정을 확인합니다. HPA가 Pod 수를 늘려도 배치 가능한 노드가 없으면 Pending이 발생할 수 있습니다.
+`TARGETS: unknown` 지속 시 Metrics Server·Pod request 확인. 새 Pod는 수집 대기 가능. 확장 후 노드 공간 부족 시 Pending 발생 가능.
 
 ## 10. OIDC·IRSA·Cluster Autoscaler
 
-실습 클러스터 OIDC issuer:
+클러스터 OIDC issuer 예시:
 
 ```text
 https://oidc.eks.ap-northeast-2.amazonaws.com/id/50E86F11FAC5ABA3B66F51DF8933D901
 ```
 
-이 ID는 비밀번호가 아니라 특정 클러스터의 issuer 식별자입니다. 클러스터를 재생성하면 달라질 수 있으므로 예전 ID를 그대로 사용하지 않습니다.
+OIDC issuer ID는 클러스터 식별자. 재생성 후 새 값으로 갱신.
 
 ```powershell
 aws eks describe-cluster --name my-cluster --region ap-northeast-2 --profile aws-yjeee --query cluster.identity.oidc.issuer --output text
 ```
 
-콘솔 IAM → 자격 증명 공급자 → OpenID Connect에서 issuer URL과 audience `sts.amazonaws.com`을 등록했습니다. `autoscaling-pod-role`의 trust는 해당 OIDC 공급자, aud=sts.amazonaws.com, sub=system:serviceaccount:kube-system:cluster-autoscaler를 사용합니다.
+콘솔 IAM → 자격 증명 공급자 → OpenID Connect에서 issuer URL과 audience `sts.amazonaws.com`을 등록. `autoscaling-pod-role`의 trust는 해당 OIDC 공급자, aud=sts.amazonaws.com, sub=system:serviceaccount:kube-system:cluster-autoscaler를 사용.
 
-ServiceAccount의 `eks.amazonaws.com/role-arn`은 그 역할을 참조합니다. 이 흐름이 IRSA입니다. Pod가 사용자의 로컬 AWS 프로필을 읽는 구조가 아닙니다.
+ServiceAccount의 `eks.amazonaws.com/role-arn` → IAM Role 연결. OIDC 토큰으로 임시 자격 증명을 받는 IRSA 방식. 로컬 AWS 프로필과 별개.
 
-수업 정책 AmazonEC2FullAccess, AmazonEKSClusterPolicy, AutoScalingFullAccess에 더해 eks:DescribeNodegroup을 해당 nodegroup ARN에 허용했습니다. 403 해결 내역은 [문제 분석 및 해결](../TROUBLESHOOTING.md)에 있습니다.
+CA 역할에는 수업 정책 AmazonEC2FullAccess, AmazonEKSClusterPolicy, AutoScalingFullAccess를 연결.
 
 ```powershell
 kubectl apply -f deploy/k8s/platform/cluster-autoscaler/autoscaler.yml
@@ -233,13 +231,13 @@ kubectl logs deployment/cluster-autoscaler -n kube-system --tail=80
 kubectl get nodes
 ```
 
-CA 버전 v1.36.1, EKS 1.36을 사용했습니다. ASG 자동 발견 태그와 min2/max4를 확인합니다. Terraform은 CA가 바꾸는 desired size를 무시하도록 구성했습니다. 그렇지 않으면 apply 시 확장한 크기를 되돌릴 수 있습니다.
+CA 버전 v1.36.1, EKS 1.36을 사용. ASG 자동 발견 태그와 min2/max4 확인. Terraform은 CA가 바꾸는 desired size를 무시하도록 구성. 그렇지 않으면 apply 시 확장한 크기를 되돌릴 수 있음.
 
-재시작 직후 leader Lease 획득 대기는 잠시 정상일 수 있습니다. 실습은 약 1분 후 정상 루프가 확인됐습니다. 반복되는 AccessDenied, no expansion option, 리소스 부족 등의 메시지는 별도 분석 대상입니다.
+재시작 직후 leader Lease 획득 대기 → 정상 루프 확인. AccessDenied·no expansion option 반복 시 권한·확장 조건 점검.
 
 ### 부하 테스트와 종료
 
-다음 명령은 실제 트래픽·자원 사용을 발생시키므로 사용자가 테스트할 때만 실행합니다.
+상품 조회 부하 루프 8개 생성:
 
 ```powershell
 kubectl run product-load -n soldesk --image=busybox:1.37 --restart=Never -- /bin/sh -c 'for i in 1 2 3 4 5 6 7 8; do while true; do wget -q -O /dev/null http://product-service/product/list || sleep 1; done & done; wait'
@@ -249,18 +247,18 @@ kubectl get nodes
 kubectl top pods -n soldesk
 ```
 
-실제 관찰: HPA replicas 1→2→4→5, 상품 Pod 5개 Running, 노드 2→3. 종료는 다음과 같습니다.
+확장 결과: HPA replicas `1→2→4→5`, Product Pod 5개 Running, 노드 `2→3`. 부하 종료:
 
 ```powershell
 kubectl delete pod product-load -n soldesk
 kubectl get hpa product-hpa -n soldesk -w
 ```
 
-부하 종료 후 CPU가 먼저 낮아지고 안정화 대기 뒤 replicas가 5→1로 줄었습니다. 노드 3→2는 사용자가 확인했으며 해당 최종 노드 캡처는 제공되지 않았습니다. 노드 축소는 HPA 축소와 동시에 발생하는 것이 아닙니다.
+부하 제거 → CPU 감소 → 안정화 대기 → replicas `5→1`. 노드 축소는 HPA와 별도 동작·확인.
 
 ## 11. Prometheus·Grafana
 
-monitoring namespace의 Prometheus는 node-exporter와 spring-apps를 수집합니다. node-exporter는 DaemonSet으로 노드마다 실행하고 hostNetwork 9100을 사용합니다. 앱은 soldesk의 annotation 기반 발견으로 8080 `/actuator/prometheus`를 수집합니다.
+monitoring namespace의 Prometheus는 node-exporter와 spring-apps를 수집. node-exporter는 DaemonSet으로 노드마다 실행하고 hostNetwork 9100을 사용. 앱은 soldesk의 annotation 기반 발견으로 8080 `/actuator/prometheus`를 수집.
 
 ```powershell
 kubectl get pods,svc -n monitoring
@@ -268,16 +266,16 @@ kubectl get daemonset -n monitoring
 kubectl get certificate -n monitoring
 ```
 
-Prometheus Targets에서 node-exporter와 spring-apps가 UP인지 확인합니다.
+Prometheus Targets에서 node-exporter와 spring-apps가 UP인지 확인.
 
 ```promql
 up{job="node-exporter"}
 up{job="spring-apps"}
 ```
 
-캡처는 각 4개 시계열이 1입니다. 이는 캡처 시점 수집 성공을 의미하며 장기 가용성 측정값은 아닙니다.
+각 job의 시계열 4개 모두 `up=1`: 메트릭 수집 성공.
 
-Grafana 초기 admin/admin 로그인 후 비밀번호를 변경했습니다. 데이터 소스 URL은 `http://prometheus-service.monitoring.svc.cluster.local:9090`입니다. Node Exporter Full(1860)과 앱 수집 상태·CPU·JVM heap·HTTP 요청 수 패널을 구성했습니다.
+Grafana 초기 admin/admin 로그인 후 비밀번호를 변경. 데이터 소스 URL은 `http://prometheus-service.monitoring.svc.cluster.local:9090`. Node Exporter Full(1860)과 앱 수집 상태·CPU·JVM heap·HTTP 요청 수 패널을 구성.
 
 ```promql
 process_cpu_usage{job="spring-apps"} * 100
@@ -285,25 +283,25 @@ sum by (app, pod) (jvm_memory_used_bytes{job="spring-apps", area="heap"})
 sum by (app) (rate(http_server_requests_seconds_count{job="spring-apps", uri!~"/health|/actuator.*"}[5m]))
 ```
 
-CPU 패널은 프로세스 메트릭이며 HPA가 보는 request 대비 사용률과 같다고 해석하지 않습니다. HTTP rate는 5분 구간 평균입니다.
+CPU 패널은 프로세스 메트릭이며 HPA가 보는 request 대비 사용률과 같다고 해석하지 않음. HTTP rate는 5분 구간 평균.
 
 ## 12. Grafana EBS 영구 저장소 상세
 
 ### 12-1. 왜 메모리와 볼륨을 함께 바꿨는가
 
-기존 Grafana가 OOMKilled(137)로 종료됐습니다. 메모리 limit 500Mi를 1Gi로 늘렸고 request는 512Mi로 변경했습니다. OOM 재발 여부는 실제 사용량으로 계속 판단해야 합니다. 동시에 기존 `/var/lib/grafana`가 영구 저장소에 연결되지 않아 설정 소실을 겪었으므로 EBS PVC를 추가했습니다.
+Grafana OOMKilled(137) 발생 → limit 500Mi→1Gi·request 512Mi 조정. 설정 소실 → `/var/lib/grafana`에 EBS PVC 연결. 메모리·저장소 문제 각각 조치.
 
-메모리는 실행 중 데이터를 처리하는 공간이고 EBS는 파일을 보관하는 저장소입니다. 메모리를 늘린다고 계정 DB나 대시보드 파일이 Pod 교체 후 보존되지는 않습니다.
+메모리: 실행 중 데이터 처리. EBS: 파일 영구 저장. 메모리 증설만으로 Pod 교체 후 설정 보존 불가.
 
 ### 12-2. EBS CSI용 IAM 역할 만들기
 
-1. IAM 콘솔에서 실습 클러스터의 OIDC 공급자가 있는지 확인합니다.
-2. 새 역할 `yjeee-deployshop-ebs-csi-role`을 만들고 Web identity/해당 OIDC를 선택합니다.
-3. audience는 sts.amazonaws.com, subject는 `system:serviceaccount:kube-system:ebs-csi-controller-sa`로 제한합니다.
-4. 권한 정책 `AmazonEBSCSIDriverPolicyV2`를 연결합니다.
-5. 생성한 역할 ARN을 EKS 애드온 연결 단계에 사용합니다.
+1. IAM 콘솔에서 실습 클러스터의 OIDC 공급자가 있는지 확인.
+2. 새 역할 `yjeee-deployshop-ebs-csi-role`을 만들고 Web identity/해당 OIDC를 선택.
+3. audience는 sts.amazonaws.com, subject는 `system:serviceaccount:kube-system:ebs-csi-controller-sa`로 제한.
+4. 권한 정책 `AmazonEBSCSIDriverPolicyV2`를 연결.
+5. 생성한 역할 ARN을 EKS 애드온 연결 단계에 사용.
 
-trust의 핵심 조건은 아래 형태입니다. provider ARN과 두 조건 키에 같은 issuer ID를 사용합니다.
+trust의 핵심 조건은 아래 형태. provider ARN과 두 조건 키에 같은 issuer ID를 사용.
 
 ```json
 {
@@ -324,11 +322,11 @@ trust의 핵심 조건은 아래 형태입니다. provider ARN과 두 조건 키
 }
 ```
 
-CA와 같은 OIDC 공급자를 사용하지만 역할과 service account는 다릅니다. EBS 역할에는 볼륨 생성·연결 권한이, CA 역할에는 ASG 크기 조절 권한이 필요합니다.
+CA와 같은 OIDC 공급자를 사용하지만 역할과 service account는 다름. EBS 역할에는 볼륨 생성·연결 권한이, CA 역할에는 ASG 크기 조절 권한이 필요.
 
 ### 12-3. EKS 애드온 연결
 
-EKS 콘솔 → my-cluster → Add-ons → Amazon EBS CSI Driver를 추가합니다. 인증 방식은 이 실습에서 IRSA를 사용했고, 위 역할을 연결했습니다. Pod Identity를 구성했다고 기록하지 않습니다. 사용 가능한 애드온 버전은 현재 EKS 호환성을 확인해 선택합니다.
+EKS 콘솔 → my-cluster → Add-ons → Amazon EBS CSI Driver를 추가. 인증 방식은 이 실습에서 IRSA를 사용했고, 위 역할을 연결. 사용 가능한 애드온 버전은 현재 EKS 호환성을 확인해 선택.
 
 ```powershell
 kubectl get csidriver ebs.csi.aws.com
@@ -336,7 +334,7 @@ kubectl get pods -n kube-system -l app=ebs-csi-controller
 kubectl get daemonset -n kube-system
 ```
 
-사용자는 ebs-csi-controller 2/2와 ebs-csi-node DaemonSet 정상 상태를 확인했습니다. node DaemonSet 수는 현재 노드 수에 따라 달라집니다.
+ebs-csi-controller 2/2·ebs-csi-node DaemonSet 정상 확인. DaemonSet 수는 노드 수에 따라 변동.
 
 ### 12-4. StorageClass와 PVC
 
@@ -354,7 +352,7 @@ kubectl get daemonset -n kube-system
 | PVC 5Gi / ReadWriteOnce | 단일 노드에서 read/write로 마운트하는 사용 방식 |
 | Prune=false,Delete=false | Argo CD prune·Application 삭제에서 PVC 보호 |
 
-ReadWriteOnce는 정확히 'Pod 한 개만'이라는 뜻이 아니라 한 노드 기준 접근 모드입니다. 실습 Grafana는 replica 1과 Recreate 전략으로 동시에 다른 노드에 같은 볼륨을 연결하는 상황을 피합니다. EBS는 AZ에 속하므로 다른 AZ의 노드에 바로 붙일 수 없습니다.
+ReadWriteOnce: 한 노드 기준 읽기·쓰기 모드. Pod 1개 제한과 구분. Grafana replica 1·Recreate로 동시 볼륨 연결 충돌 방지. EBS는 생성된 AZ 안에서 연결 가능.
 
 ### 12-5. Grafana Deployment 연결
 
@@ -376,11 +374,11 @@ volumes:
       claimName: grafana-data
 ```
 
-위 조각은 위치 설명용으로 전체 manifest가 아닙니다. 실제 파일은 `grafana-depl_svc.yml`입니다. fsGroup은 데이터 경로 쓰기 권한에 관여하고 OnRootMismatch는 파일 소유권 처리 동작을 조정합니다. Recreate는 새 Pod 생성 전에 이전 Pod를 종료하므로 재배포 중 짧은 중단이 생길 수 있습니다.
+Deployment 설정 일부. 실제 파일: `grafana-depl_svc.yml`. fsGroup으로 쓰기 권한 설정, OnRootMismatch로 소유권 변경 범위 조절. Recreate는 기존 Pod 종료 후 생성하므로 재배포 중 중단 가능.
 
 ### 12-6. Argo CD에 최신 파일 반영
 
-사용자가 변경을 commit·push한 뒤 Sync했습니다. 문서 작성 과정에서는 commit·push하지 않았습니다. 당시 Argo CD가 이전 커밋을 보고 있어 다음으로 hard refresh했습니다.
+변경 commit·push 후 Sync. 이전 커밋 참조 시 hard refresh로 최신 리비전 갱신.
 
 ```powershell
 kubectl annotate application msa-monitoring -n argocd argocd.argoproj.io/refresh=hard --overwrite
@@ -390,11 +388,11 @@ kubectl get pods -n monitoring
 kubectl describe pvc grafana-data -n monitoring
 ```
 
-Git에 새 파일이 있어도 Argo CD가 이전 리비전을 보고 있으면 아직 PVC가 없습니다. 새 리비전과 Sync 결과를 먼저 확인합니다. PVC Pending이면 Events에서 consumer 대기인지 IAM 권한·용량·AZ 문제인지 구분합니다. 정상 목표는 PVC Bound, Grafana READY 1/1입니다.
+Git에 새 파일이 있어도 Argo CD가 이전 리비전을 보고 있으면 아직 PVC가 없음. 새 리비전과 Sync 결과를 먼저 확인. PVC Pending이면 Events에서 consumer 대기인지 IAM 권한·용량·AZ 문제인지 구분. 정상 목표: PVC Bound·Grafana READY 1/1.
 
 ### 12-7. 데이터 보존 확인
 
-새 EBS는 처음에는 비어 있으므로 사라진 과거 대시보드가 자동 복원되지는 않습니다. 새로 로그인해 비밀번호를 변경하고 데이터 소스와 대시보드를 저장했습니다.
+새 EBS는 빈 볼륨으로 생성. 과거 설정 자동 복원 불가. 비밀번호·데이터 소스·대시보드 재설정 후 저장.
 
 ```powershell
 kubectl rollout restart deployment grafana -n monitoring
@@ -402,23 +400,23 @@ kubectl rollout status deployment grafana -n monitoring
 kubectl get pvc grafana-data -n monitoring
 ```
 
-재시작 후 변경한 계정으로 로그인되고 Prometheus 데이터 소스와 대시보드가 남아 있는지 확인했습니다. 이 최종 보존 결과는 사용자 확인이며 비교 캡처는 별도로 제공되지 않았습니다.
+재시작 후 변경한 계정으로 로그인되고 Prometheus 데이터 소스와 대시보드가 남아 있는지 확인.
 
-Retain과 PVC 보호는 삭제 방지 장치이지 백업이 아닙니다. 볼륨 삭제·AZ 장애·파일 손상 등에 대한 별도 백업 설계는 하지 않았습니다. 실습 종료 시 남은 EBS와 비용을 직접 확인해야 합니다. Prometheus 시계열 저장소는 EBS에 연결하지 않았습니다.
+Retain·PVC 보호: 자동 삭제 방지. 백업·AZ 장애 복구와 별개. 종료 시 남은 EBS·비용 확인. Prometheus 영구 볼륨은 미적용.
 
 ## 13. monitoring 인증서 OutOfSync 수정
 
-monitoring Certificate를 Git YAML로 선언하면서 Ingress annotation도 같은 인증서 생성을 요청했습니다. duration/renewBefore 필드가 반복해서 달라졌습니다.
+Git Certificate와 Ingress annotation이 같은 인증서를 중복 관리. duration·renewBefore 차이 반복 발생.
 
-최종 변경은 monitoring Ingress의 cert-manager.io/cluster-issuer annotation 제거 한 줄입니다. 명시적 Certificate, issuerRef, TLS secret 참조는 유지했습니다. 사용자는 반영 후 Synced/Healthy와 HTTPS를 확인했습니다. `ArgoCD.png`는 이 수정 전 화면입니다.
+최종 변경은 monitoring Ingress의 cert-manager.io/cluster-issuer annotation 제거 한 줄. 명시적 Certificate, issuerRef, TLS secret 참조는 유지. 반영 후 Synced/Healthy·HTTPS 정상 확인. `ArgoCD.png`는 이 수정 전 화면.
 
 ## 14. CloudWatch·SNS
 
-Terraform monitoring.tf에서 EKS control plane 로그 api·audit·authenticator를 켜고 `/aws/eks/my-cluster/cluster` 로그 그룹을 사용했습니다. 보존 기간 7일과 prevent_destroy가 설정돼 있습니다. 애플리케이션 stdout을 CloudWatch로 모으는 구성은 포함하지 않았습니다.
+Terraform monitoring.tf에서 EKS control plane 로그 api·audit·authenticator를 켜고 `/aws/eks/my-cluster/cluster` 로그 그룹을 사용. 보존 기간 7일과 prevent_destroy가 설정돼 있음. 애플리케이션 stdout을 CloudWatch로 모으는 구성은 포함하지 않음.
 
-SNS topic은 msa-monitoring-alerts입니다. 이메일 구독 생성 후 받은 확인 메일의 링크를 사용자가 승인해야 실제 알림이 전달됩니다. 테스트 publish 메일과 CloudWatch ALARM 메일 수신을 확인했습니다.
+SNS topic: `msa-monitoring-alerts`. 이메일 구독 승인 후 알림 수신 가능. 직접 publish·CloudWatch ALARM 메일 수신 확인.
 
-CPU alarm은 다음 조건입니다.
+CPU alarm은 다음 조건.
 
 | 항목 | 값 |
 |---|---|
@@ -432,23 +430,23 @@ CPU alarm은 다음 조건입니다.
 | missing | missing |
 | action | ALARM 및 OK에서 SNS |
 
-수동 경로 테스트 명령은 다음과 같습니다.
+수동 알림 경로 테스트:
 
 ```powershell
 aws cloudwatch set-alarm-state --alarm-name my-cluster-node-group-cpu-high --state-value ALARM --state-reason "Manual notification path test for Deployshop" --region ap-northeast-2 --profile aws-yjeee
 ```
 
-이 명령은 CPU 부하를 만들지 않습니다. 알람 상태를 임시로 바꿔 SNS 전달 경로를 확인합니다. 이후 실제 지표 평가가 다시 진행되며 OK로 돌아온 이력이 있습니다. ALARM 이메일은 캡처가 있고 OK 이메일은 사용자 확인입니다. CPU 80%를 실제 10분간 초과시켜 검증했다고 표현하지 않습니다.
+수동 ALARM 전환 → SNS → 이메일 수신 확인. 이후 지표 재평가로 OK 복귀. 실제 CPU 임계값 초과는 미검증.
 
-선택적 order_notifications.tf가 존재해도 애플리케이션 주문 이벤트와 SNS가 연결된 것은 아닙니다. 주문 알림 기능 완료 범위에 포함하지 않습니다.
+`order_notifications.tf`: 선택적 인프라 정의. 애플리케이션 주문 이벤트·SNS 연동은 미구현.
 
 ## 15. 웹·Postman·Workbench 검증
 
-웹 로그인 후 상품 상세 페이지에서 구매를 수행했습니다. 상품 ID 1은 재고 9→8 화면이 있습니다. 별도의 최종 검증 상품은 ID 2입니다.
+웹 로그인 후 상품 상세 페이지에서 구매를 수행. 상품 ID 1은 재고 9→8 화면이 있음. 별도의 최종 검증 상품은 ID 2.
 
-Postman 로그인: POST `/member-service/member/doLogin`, JSON loginId/password. 성공 응답의 token을 후속 요청 Authorization Bearer에 넣습니다. 비밀번호·token·refreshToken 값은 공개하지 않습니다.
+Postman 로그인: POST `/member-service/member/doLogin`, JSON loginId/password. 성공 응답의 token을 후속 요청 Authorization Bearer에 입력. 비밀번호·token·refreshToken 값은 공개하지 않음.
 
-최종 상품 ID 2는 웹 1개 구매 후 재고 9, Postman 2개 주문 후 재고 7이 됐습니다.
+상품 ID 2: 초기 재고 10 → 웹 1개 구매 후 9 → API 2개 주문 후 7.
 
 ```http
 POST /ordering-service/ordering/create
@@ -458,7 +456,7 @@ Content-Type: application/json
 {"productId": 2, "productCount": 2}
 ```
 
-응답 201, 주문 ID 4를 확인했습니다. RDS ordermsa에서 다음 SELECT를 수행했습니다.
+응답 201, 주문 ID 4 확인. RDS ordermsa에서 다음 SELECT를 수행.
 
 ```sql
 USE ordermsa;
@@ -472,13 +470,13 @@ WHERE product_id = @product_id
 ORDER BY id;
 ```
 
-관찰값: product.stock_quantity=7, 주문 ID 3 quantity1 및 ID4 quantity2, member_id=2/product_id=2, 두 건 ORDERED입니다. SQL에서 필드명이 API JSON과 다를 수 있으므로 snake_case를 사용했습니다.
+관찰값: product.stock_quantity=7, 주문 ID 3 quantity1 및 ID4 quantity2, member_id=2/product_id=2, 두 건 ORDERED. SQL에서 필드명이 API JSON과 다를 수 있으므로 snake_case를 사용.
 
-같은 상품에 productCount=8을 요청해 400과 `재고 부족`을 확인했습니다. 재조회 시 재고 7과 기존 두 주문만 남았습니다. API 응답·DB·웹을 대조한 순차 검증입니다. 동시성 부하에서의 재고 원자성, 결제, 분산 트랜잭션 검증은 포함하지 않습니다.
+같은 상품에 productCount=8을 요청해 400과 `재고 부족` 확인. 재조회 시 재고 7과 기존 두 주문만 유지. API 응답·DB·웹을 대조한 순차 검증. 동시성 부하에서의 재고 원자성, 결제, 분산 트랜잭션 검증은 포함하지 않음.
 
-Workbench Error1046은 DB 미선택이 원인이었고 USE ordermsa 실행 후 해결됐습니다. 접속 실패와 SQL 실행 실패를 구분합니다.
+Workbench Error1046은 DB 미선택이 원인이었고 USE ordermsa 실행 후 해결. 접속 실패와 SQL 실행 실패를 구분.
 
-## 16. 최종 확인·공개 자료
+## 16. 최종 확인
 
 ```powershell
 kubectl get applications -n argocd
@@ -489,8 +487,4 @@ kubectl get certificate -A
 git status --short
 ```
 
-이 명령은 향후 사용자 최종 확인용입니다. 문서 작성 시 다시 실행한 결과로 제시하지 않습니다. 화면별 시점 차이가 있으므로 노드 수·리비전·동기화 상태를 섞지 않습니다.
-
-실행 내용과 강조된 캡처는 [실행 및 검증 결과](../VALIDATION.md)에 함께 있습니다. 원본은 보존하고 표시본을 본문에 배치했습니다. 로그인·SNS 메일 2개는 과거 AI 가림 편집 사본으로 구분했습니다.
-
-이 작업에서 완료한 것은 문서·자료 정리입니다. Git commit/push와 AWS·Kubernetes 재실행은 수행하지 않았습니다. 실습 종료 시에는 RDS 보호·스냅샷, S3 버전 객체, EBS Retain, CloudWatch prevent_destroy와 로컬 state를 고려해 사용자가 보존·정리 범위를 결정합니다.
+종료 전 확인: RDS 삭제 보호·최종 스냅샷, S3 버전 객체, EBS Retain, CloudWatch prevent_destroy, 로컬 Terraform state.

@@ -1,6 +1,6 @@
 # AWS MSA 핵심 개념 복습
 
-여러 프로젝트에서 반복해 확인한 개념을 **선택 이유·동작 원리·검증 기준**으로 정리했습니다. 세부 명령과 구축 순서는 [상세 복습 노트](STUDY-NOTES.md), 개인 프로젝트 실행 근거는 [실행 및 검증 결과](../VALIDATION.md)를 참고합니다.
+**선택 이유·동작 원리·검증 기준** 중심 복습. [상세 복습 노트](STUDY-NOTES.md) · [실행 및 검증 결과](../VALIDATION.md).
 
 ## 프로젝트별 구현 범위
 
@@ -12,7 +12,7 @@
 | DB 접근·인증값 | Public RDS · 최종 PC /32 · 수동 Secret | Private RDS · Secrets Manager · ESO |
 | 운영·데이터 | Grafana EBS · 메트릭·경보 | 내부 배포 검증 · 주문 알림 · 스냅샷 복원 추가 |
 
-팀의 기술을 개인 프로젝트 완료 기능으로 합치지 않습니다. 아래 **[팀]**은 팀 프로젝트에서 추가로 학습한 내용입니다.
+**[팀]**: 팀 프로젝트 학습 내용. 개인 프로젝트 구현 범위와 구분.
 
 ## 01. 네트워크 경로를 구분해야 하는 이유
 
@@ -20,7 +20,7 @@
 |---|---|
 | Region·AZ·Subnet의 관계 | Region 안에 여러 AZ가 있고 Subnet은 한 AZ에 속함. 서비스별 전용 EC2가 아니라 여러 Pod를 노드에 배치 |
 | 접속 목적지와 허용 출발지를 구분하는 이유 | Workbench의 목적지는 **RDS Endpoint**, 보안 그룹의 허용 출발지는 **PC 공인 IP/32**. 사설 IP·Gateway와 구분 |
-| Public·Private을 라우팅으로 판단하는 이유 | Subnet 이름보다 경로·주소·보안 조건을 확인. 개인 프로젝트의 Private DB Subnet 정의가 실제 Private RDS 배치를 뜻하지 않음 |
+| Public·Private을 라우팅으로 판단하는 이유 | Subnet 이름보다 경로·주소·보안 조건 확인. 개인 프로젝트의 Private DB Subnet 정의가 실제 Private RDS 배치를 뜻하지 않음 |
 | NAT와 Load Balancer가 함께 필요한 이유 | NAT Gateway는 Private 자원이 시작한 외부 연결, LB는 외부 요청의 앱 전달을 담당. NAT Gateway는 임의의 외부 신규 연결을 받는 포트포워딩 대체재가 아님 |
 | NLB와 ALB의 선택 기준 | NLB는 L4 연결, ALB는 HTTP Host·Path 기반 L7 처리. **[팀]** 웹 라우팅·TLS를 ALB·ACM으로 통합 |
 | 다중 AZ와 고가용성이 다른 이유 | 두 AZ에 Subnet이 있어도 Single-AZ RDS에 대기 DB가 생기지 않음. NAT 1개·Single-AZ DB는 각 장애의 영향 범위가 남음 |
@@ -39,7 +39,7 @@
 | Bootstrap·State 분리가 필요한 이유 **[팀]** | 원격 State용 S3를 먼저 준비하고 infra·클러스터 내부 구성은 별도 Root/State로 관리. Bootstrap 자체는 Local State |
 | 버전 관리와 잠금이 다른 이유 **[팀]** | S3 버전 관리는 과거 State 보관, `.tflock`은 동시 변경 충돌 방지. 주문 중복 방지용 DynamoDB와 별개 |
 
-**암기:** validate는 구성 검사, plan은 변경 계획, apply는 실행. 정적 검사 성공이 실제 권한·연결·기능 성공을 보장하지 않습니다. [Terraform 의존성](https://developer.hashicorp.com/terraform/language/meta-arguments/depends_on)
+**암기:** validate는 구성 검사, plan은 변경 계획, apply는 실행. 정적 검사 성공이 실제 권한·연결·기능 성공을 보장하지 않음. [Terraform 의존성](https://developer.hashicorp.com/terraform/language/meta-arguments/depends_on)
 
 ## 03. 인증·권한·Secret을 분리하는 이유
 
@@ -52,7 +52,7 @@
 | ESO와 비밀번호 변경이 다른 작업인 이유 **[팀]** | ESO는 Secrets Manager 값을 Kubernetes Secret으로 동기화. DB 비밀번호 자체 변경과 앱 재연결은 별도 단계 |
 | 비밀번호 갱신 후 Pod 교체가 필요한 이유 **[팀]** | 환경 변수로 주입된 값은 기존 프로세스에 자동 재주입되지 않음. 동기화 → 새 Pod → DB-ready·로그인/API로 복구 확인 |
 
-**암기:** 신뢰 정책은 **누가**, 권한 정책은 **무엇을**, Secret은 **어떤 값을 앱에 전달하는가**입니다. [GitHub OIDC](https://docs.github.com/en/actions/how-tos/secure-your-work/security-harden-deployments/oidc-in-aws) · [ESO](https://external-secrets.io/latest/introduction/overview/)
+**암기:** 신뢰 정책은 **누가**, 권한 정책은 **무엇을**, Secret은 **앱에 전달할 값**. [GitHub OIDC](https://docs.github.com/en/actions/how-tos/secure-your-work/security-harden-deployments/oidc-in-aws) · [ESO](https://external-secrets.io/latest/introduction/overview/)
 
 ## 04. 이미지 게시와 실제 배포를 구분하는 이유
 
@@ -63,10 +63,10 @@
 | 직접 배포도 CD인 이유 | 개인 프로젝트는 Actions가 apply·restart로 배포하고 Argo CD가 선언을 동기화. Argo CD 단독 이미지 배포와 구분 |
 | PR 승인과 GitOps를 연결하는 이유 **[팀]** | 이미지 게시 → 배포 선언 PR → 리뷰·병합 → Argo CD 반영. 승인과 병합은 별개이며 보호 규칙으로 조건 강제 |
 | Terraform·Helm·Kustomize의 책임 **[팀]** | Terraform은 EKS 등 인프라, Helm은 운영 도구 패키지, Kustomize는 앱 매니페스트·이미지 설정. 앱 YAML이 EKS 자체를 만드는 것은 아님 |
-| CodeBuild 내부 검증을 사용하는 이유 **[팀]** | Actions가 요청하고 Private Subnet의 CodeBuild가 EKS 상태·HTTPS·API를 확인. 검증 역할에는 필요한 조회만 허용 |
+| CodeBuild 내부 검증을 사용하는 이유 **[팀]** | Actions가 요청하고 Private Subnet의 CodeBuild가 EKS 상태·HTTPS·API 확인. 검증 역할에는 필요한 조회만 허용 |
 | 권한 거부가 정상 검증 결과인 이유 **[팀]** | Secret 조회·배포 수정처럼 금지한 작업의 Forbidden은 기대 결과. 네트워크 접근·인증·Kubernetes 권한을 각각 검증 |
 
-**암기:** 코드 저장 → 이미지 게시 → 승인된 선언 → 배포 → 실제 응답은 별도 단계입니다.
+**암기:** 코드 저장 → 이미지 게시 → 승인된 선언 → 배포 → 실제 응답은 별도 단계.
 
 ## 05. Pod와 노드의 확장을 나누는 이유
 
@@ -87,7 +87,7 @@ Metrics Server → HPA가 Deployment 목표 replicas 변경
 | HPA와 Argo CD의 제어 책임을 나누는 이유 | replicas는 HPA, 나머지 선언은 Argo CD. `/spec/replicas` 제외와 `RespectIgnoreDifferences=true`로 충돌 방지 |
 | 상태 검사와 종료 대기가 필요한 이유 **[팀]** | startup은 시작 완료, readiness는 요청 준비, liveness는 재시작 판단. 종료 유예·preStop은 대상 제외와 진행 중 요청 처리를 고려 |
 
-**적용:** 개인 Product Pod `1→5→1`, 노드 `2→3` 확인. 노드 `3→2`는 사용자 완료 보고입니다. **[팀]** PDB는 자발적 축출의 가용성 예산이며 모든 장애나 Deployment 교체를 막는 기능은 아닙니다. [Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) · [Probe](https://kubernetes.io/docs/concepts/workloads/pods/probes/)
+**적용:** 개인 Product Pod `1→5→1`, 노드 `2→3` 확인. 노드 축소는 별도 확인 항목. **[팀]** PDB는 자발적 축출의 가용성 예산이며 모든 장애나 Deployment 교체를 막는 기능은 아님. [Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) · [Probe](https://kubernetes.io/docs/concepts/workloads/pods/probes/)
 
 ## 06. DNS·TLS·서비스 상태를 별도로 확인하는 이유
 
@@ -104,7 +104,7 @@ TLS: 발급 요청 → 도메인 검증 → 인증서 → TLS 종료 지점에�
 | Hosted Zone과 도메인 위임의 차이 **[팀]** | 새 계정 Zone 생성만으로 공개 DNS가 바뀌지 않음. 등록기관의 권한 네임서버를 새 Zone의 NS로 연결 |
 | Synced·Healthy·실제 응답을 구분하는 이유 | 각각 선언 일치·리소스 상태 판정·관측한 요청 결과. 어느 하나가 전체 기능 성공을 보장하지 않음 |
 
-**암기:** 인증서 pending은 상태이며, 원인은 DNS·검증 경로·Issuer 등을 확인해 좁힙니다. [Alias·CNAME](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resource-record-sets-choosing-alias-non-alias.html)
+**암기:** 인증서 pending 발생 시 DNS·검증 경로·Issuer 순서로 원인 확인. [Alias·CNAME](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resource-record-sets-choosing-alias-non-alias.html)
 
 ## 07. 관측·영구 저장·복원을 분리하는 이유
 
@@ -118,7 +118,7 @@ TLS: 발급 요청 → 도메인 검증 → 인증서 → TLS 종료 지점에�
 | EKS 재구축과 스냅샷 복원이 다른 이유 **[팀]** | EKS는 코드로 재구축, RDS·모니터링 EBS는 스냅샷에서 데이터 복원. 새 볼륨 ID여도 백업에서 만든 데이터는 존재 |
 | 경보 전달과 실제 장애 검증의 차이 | 개인의 수동 ALARM은 SNS 전달 경로 확인. 실제 CPU 임계값 초과 검증과 구분. DB 변경 중 경보도 재연결 성공의 증거는 아님 |
 
-**적용 범위:** 개인은 Grafana EBS 5Gi와 재시작 후 설정 보존을 확인했고 최종 보존은 사용자 보고입니다. Prometheus에는 영구 볼륨이 없습니다. 팀의 S3 이미지는 보존 객체 대조, RDS·모니터링 EBS는 스냅샷 복원입니다.
+**적용 범위:** 개인: Grafana EBS 5Gi·재시작 후 설정 유지 확인, Prometheus 영구 볼륨 미적용. 팀: S3 보존 객체 대조·RDS 및 모니터링 EBS 스냅샷 복원.
 
 ## 08. 주문 저장과 알림 전달을 분리하는 이유 [팀]
 
@@ -134,25 +134,11 @@ TLS: 발급 요청 → 도메인 검증 → 인증서 → TLS 종료 지점에�
 | DynamoDB 중복 방지의 한계 | SES 접수 직후 SENT 기록 전에 실패하면 재시도 시 중복 가능. 중복 감소와 exactly-once는 다름 |
 | 메일 접수와 도착을 구분하는 이유 | SES API 접수와 받은편지함 도착은 별개. 인증·반송·스팸 등 수신 결과도 확인 |
 
-개인 deployshop의 주문 SNS 발송은 앱 연동 완료 범위가 아닙니다. [SQS·Lambda 처리](https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html)
+개인 deployshop의 주문 SNS 발송은 앱 연동 완료 범위가 아님. [SQS·Lambda 처리](https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html)
 
 ## 09. 운영 검증과 재구축에서 기억할 것
 
-- **배포 검증:** Workflow·rollout·Argo CD 상태·웹/API·DB를 각각 확인합니다. PASS는 해당 비교 조건의 통과이며 관측한 요청 표본을 무중단 보장으로 확대하지 않습니다.
-- **문제 해결:** 증상 → 근거 → 원인 → 조치 → 재검증으로 설명합니다. HPA의 replicas 충돌과 Certificate 중복 관리는 서로 다른 문제입니다. [문제 분석 및 해결](../TROUBLESHOOTING.md)
-- **재구축:** EKS OIDC·kubeconfig·NLB/ALB 대상·RDS Endpoint·Secret·볼륨 연결을 다시 확인합니다. 코드 보존은 데이터 백업을 대신하지 않습니다.
-- **종료:** Terraform 밖의 자원, Retain EBS·스냅샷·S3 버전·로그를 별도 확인합니다. 중지·삭제·비용 종료는 같은 의미가 아닙니다.
-
-<details>
-<summary>분석 근거와 범위</summary>
-
-정리일 2026-11-02. 실제 질문을 주제별로 재구성했으며 로그인·메뉴 조작·셸 문법 등 단순 사용법은 제외했습니다. 반복이 확인된 우선 복습 주제는 변수 범위, 공인 IP·CIDR, Secret, CD·GitOps, NAT·ALB, State·복원, ESO, 검증 권한, 주문 중복 방지입니다. 질문하지 않은 내용을 반복 질문으로 집계하지 않았습니다.
-
-- ChatGPT ‘파이널 프로젝트’: 앞서 확인한 대화 11개·사용자 메시지 46개. 일부 반환 본문과 첨부 원문은 제한되어 전체 과거 이력을 보장하지 않습니다.
-- Codex ‘yjeee-deployshop’: `프로젝트 디렉토리 구조 검토`, `수업 자료 흐름대로 실행 과정 정리`, `프로젝트 내용 파악`, `비교해 프로젝트 구성 제안`의 17페이지·148턴과 현재 대화 맥락.
-- Codex ‘aws-eks-final-project’: `개인 프로젝트 발표 자료 준비`, `발표 대본 추가수정`, `발표 대본 수정`, `PPT`, `프로젝트 발표 흐름 정리`, `오늘 실행한 리소스 삭제`, `최종 프로젝트 실행 및 검증`, `최종 프로젝트 흐름 설명 생성`, `도메인 호스팅 영역 삭제 확인`의 45페이지·509턴.
-- Codex 대상 대화는 추가 페이지 없음까지 확인했습니다. 턴에는 단순 작업·완료 보고도 포함되며 기술 질문 횟수와 같지 않습니다.
-
-개인 사례는 2026-10-16 [실행 및 검증 결과](../VALIDATION.md), 팀 사례는 [배포](https://github.com/yjeee-ghub/aws-eks-final-project/blob/main/docs/02-deployment.md)·[State](https://github.com/yjeee-ghub/aws-eks-final-project/blob/main/docs/07-terraform-state.md)·[운영·복원](https://github.com/yjeee-ghub/aws-eks-final-project/blob/main/docs/16-integrated-operations.md) 기록 및 로컬 설정과 대조했습니다. 팀의 초기·최종·별도 계정 실행은 구분했으며 이번 문서 수정 중 AWS를 재실행하지 않았습니다.
-
-</details>
+- **배포 검증:** Workflow·rollout·Argo CD 상태·웹/API·DB를 각각 확인. PASS는 해당 비교 조건의 통과이며 관측한 요청 표본을 무중단 보장으로 확대하지 않음.
+- **문제 해결:** 증상 → 근거 → 원인 → 조치 → 재검증으로 설명. HPA의 replicas 충돌과 Certificate 중복 관리는 서로 다른 문제. [문제 분석 및 해결](../TROUBLESHOOTING.md)
+- **재구축:** EKS OIDC·kubeconfig·NLB/ALB 대상·RDS Endpoint·Secret·볼륨 연결을 다시 확인. 코드 보존은 데이터 백업을 대신하지 않음.
+- **종료:** Terraform 밖의 자원, Retain EBS·스냅샷·S3 버전·로그를 별도 확인. 중지·삭제·비용 종료는 같은 의미가 아님.
