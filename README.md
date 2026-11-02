@@ -23,7 +23,7 @@
 | [구축 절차](docs/SETUP.md) | 실행 순서, CLI·콘솔 작업, Terraform 관리 범위 |
 | [검증 결과](docs/VALIDATION.md) | 웹·API·DB 대조, 자동 확장·알림 결과와 증거 |
 | [문제 분석 및 해결](docs/TROUBLESHOOTING.md) | Grafana OOM·EBS, 인증서 충돌, IAM·ECR 오류 해결 |
-| [증거 목록](docs/EVIDENCE.md) | 캡처별 설명, 공개용 가림 처리, 검증 시점 구분 |
+| [구현 및 검증 사례](docs/EVIDENCE.md) | 실행·변경 → 화면 확인 → 결과를 연결한 8개 사례 |
 | [핵심 개념 복습](docs/learning/CORE-REVIEW.md) | 개인·팀 프로젝트의 기술 선택 이유와 동작 원리 |
 | [교육·복습 노트](docs/learning/STUDY-NOTES.md) | 단계별 명령·의미·정상 결과·오류 해결 및 EBS 상세 설명 |
 
@@ -144,7 +144,7 @@ yjeee-deployshop/
 
 Terraform은 AWS 기본 리소스와 CloudWatch/SNS를 관리합니다. **Route 53 레코드·CA용 OIDC/IAM·EBS CSI용 IAM 및 애드온은 콘솔에서 구성**했습니다. NLB는 Controller의 Service, Grafana EBS는 PVC에 의해 생성됩니다. 모든 리소스를 Terraform으로 관리한다고 표현하지 않습니다.
 
-## 08. Evidence Preview
+## 08. 구현 및 검증 사례
 
 ![주문 검증 후 재고 7개](docs/images/evidence-09.png)
 
@@ -152,7 +152,7 @@ Terraform은 AWS 기본 리소스와 CloudWatch/SNS를 관리합니다. **Route 
 
 ![상품 Pod와 노드 확장](docs/images/evidence-05.png)
 
-[전체 검증·캡처 목록 보기](docs/EVIDENCE.md)
+[구현 및 검증 사례 보기](docs/EVIDENCE.md)
 
 ## 09. Scope & Operations Notes
 
