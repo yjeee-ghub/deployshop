@@ -80,4 +80,4 @@ flowchart TB
 | **Kubernetes Controller** | LoadBalancer Service → NLB / StorageClass·PVC → EBS |
 | **Actions·Argo CD** | 이미지 직접 배포 / Git 선언 동기화·self-heal |
 
-> **제어 분리** · HPA는 Backend replicas, CA는 노드 용량, Argo CD는 나머지 배포 선언 관리.
+> **제어 분리** · HPA는 Backend replicas를, CA는 노드 용량을 조절합니다. Argo CD는 나머지 배포 선언을 관리합니다.

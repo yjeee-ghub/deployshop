@@ -25,7 +25,7 @@
 | **NLB와 Ingress를 나누는 이유** | NLB는 L4 연결 전달, Ingress NGINX는 HTTP Host·Path 라우팅과 TLS 종료 담당 |
 | **다중 AZ와 고가용성이 다른 이유** | 두 AZ에 Subnet이 있어도 Single-AZ RDS에 대기 DB가 생기지 않음. NAT 1개·Single-AZ DB는 각 장애의 영향 범위가 남음 |
 
-> **암기** · 공인 IP는 출발지, Endpoint는 목적지. NAT는 외부 통신, LB는 요청 진입. [AWS NAT Gateway](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html)
+> **암기** · 공인 IP는 출발지이고 Endpoint는 목적지입니다. NAT는 외부 통신을, LB는 요청 진입을 담당합니다. [AWS NAT Gateway](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html)
 
 ---
 
@@ -39,7 +39,7 @@
 | **State를 보존해야 하는 이유** | 코드 주소와 실제 자원의 관계 등을 기록. **State 삭제는 AWS 자원 삭제가 아니며**, 관리 정보 손실을 일으킬 수 있음 |
 | **sensitive와 실제 비밀값 보호의 차이** | 일반 출력 가림과 암호화는 별개. State·tfvars의 저장·접근·Git 추적을 따로 관리 |
 
-> **암기** · validate는 구성 검사, plan은 변경 계획, apply는 실행. 정적 검사 성공이 실제 권한·연결·기능 성공을 보장하지 않음. [Terraform 의존성](https://developer.hashicorp.com/terraform/language/meta-arguments/depends_on)
+> **암기** · validate는 구성 검사, plan은 변경 계획, apply는 실행입니다. 정적 검사만으로 실제 권한·연결·기능 성공을 보장하지 않습니다. [Terraform 의존성](https://developer.hashicorp.com/terraform/language/meta-arguments/depends_on)
 
 ---
 
@@ -52,7 +52,7 @@
 | **Secret별 역할을 나누는 이유** | 앱 DB 인증, Product의 S3 키, Actions의 AWS 인증은 서로 다른 소비자·용도. 같은 관리자 키를 공통 사용하지 않음 |
 | **IRSA에 신뢰 조건이 필요한 이유** | CA·EBS CSI의 ServiceAccount를 OIDC로 IAM Role과 연결. Trust의 audience·subject로 역할 사용 대상을 제한 |
 
-> **암기** · 신뢰 정책은 **누가**, 권한 정책은 **무엇을**, Secret은 **앱에 전달할 값**.
+> **암기** · 신뢰 정책은 역할 사용자, 권한 정책은 허용 작업, Secret은 앱에 전달할 값을 정의합니다.
 
 ---
 
@@ -64,7 +64,7 @@
 | **latest와 버전별 태그의 차이** | latest는 같은 이름의 내용이 바뀔 수 있음. 커밋 태그·Digest는 실행 버전 추적·재현·롤백을 명확하게 함 |
 | **직접 배포도 CD인 이유** | 개인 프로젝트는 Actions가 apply·restart로 배포하고 Argo CD가 선언을 동기화. Argo CD 단독 이미지 배포와 구분 |
 
-> **암기** · 코드 변경 → 이미지 게시 → 배포 → 실제 응답은 각각 확인. Actions 직접 배포와 Argo CD 선언 동기화 병행.
+> **암기** · 코드 변경·이미지 게시·배포·실제 응답은 각각 확인합니다. Actions 직접 배포와 Argo CD 선언 동기화를 병행합니다.
 
 ---
 
@@ -86,7 +86,7 @@ Metrics Server → HPA가 Deployment 목표 replicas 변경
 | **Pending과 Ready를 구분하는 이유** | Phase와 준비 조건은 별개. CA가 미리 대기 Pod를 만드는 것이 아니라 스케줄링 불가능한 Pod 등을 고려 |
 | **HPA와 Argo CD의 제어 책임을 나누는 이유** | replicas는 HPA, 나머지 선언은 Argo CD. `/spec/replicas` 제외와 `RespectIgnoreDifferences=true`로 충돌 방지 |
 
-> **적용** · Product Pod `1→5→1`, 노드 `2→3` 확인. replicas는 HPA, 배포 선언은 Argo CD가 관리.
+> **적용** · Product Pod `1→5→1`과 노드 `2→3`을 확인했습니다. replicas는 HPA가, 나머지 배포 선언은 Argo CD가 관리합니다.
 
 ---
 
@@ -104,7 +104,7 @@ TLS: 발급 요청 → 도메인 검증 → 인증서 → TLS 종료 지점에�
 | **인증서 발급과 TLS 종료를 구분하는 이유** | cert-manager가 발급·갱신을 관리하고 TLS Secret 생성. Ingress NGINX가 Secret을 참조해 HTTPS 처리 |
 | **Synced·Healthy·실제 응답을 구분하는 이유** | 각각 선언 일치·리소스 상태 판정·관측한 요청 결과. 어느 하나가 전체 기능 성공을 보장하지 않음 |
 
-> **암기** · 인증서 pending 발생 시 DNS·검증 경로·Issuer 순서로 원인 확인. [Alias·CNAME](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resource-record-sets-choosing-alias-non-alias.html)
+> **암기** · 인증서 pending 발생 시 DNS·검증 경로·Issuer 순서로 원인을 확인합니다. [Alias·CNAME](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resource-record-sets-choosing-alias-non-alias.html)
 
 ---
 
@@ -118,13 +118,13 @@ TLS: 발급 요청 → 도메인 검증 → 인증서 → TLS 종료 지점에�
 | **데이터 유지와 백업 복원이 다른 이유** | 기존 PVC 유지·Bound는 연결 상태. 데이터 내용을 별도로 대조하며 Retain은 백업이 아님 |
 | **경보 전달과 실제 부하 검증의 차이** | 수동 ALARM은 SNS 전달 경로 확인. 실제 CPU 임계값 초과 검증과 구분 |
 
-> **적용 범위** · Grafana EBS 5Gi·재시작 후 설정 유지 확인. Prometheus 영구 볼륨 미적용.
+> **적용 범위** · Grafana EBS 5Gi와 재시작 후 설정 유지를 확인했습니다. Prometheus에는 영구 볼륨을 적용하지 않았습니다.
 
 ---
 
 ## 08. 운영 검증과 재구축에서 기억할 것
 
-- **배포 검증:** Workflow·rollout·Argo CD 상태·웹/API·DB를 각각 확인. PASS는 해당 비교 조건의 통과이며 관측한 요청 표본을 무중단 보장으로 확대하지 않음.
-- **문제 해결:** 증상 → 근거 → 원인 → 조치 → 재검증으로 설명. HPA의 replicas 충돌과 Certificate 중복 관리는 서로 다른 문제. [문제 분석 및 해결](../TROUBLESHOOTING.md)
-- **재구축:** EKS OIDC·kubeconfig·NLB 대상·RDS Endpoint·Secret·볼륨 연결을 다시 확인. 코드 보존은 데이터 백업을 대신하지 않음.
-- **종료:** Terraform 밖의 자원, Retain EBS·스냅샷·S3 버전·로그를 별도 확인. 중지·삭제·비용 종료는 같은 의미가 아님.
+- **배포 검증:** Workflow·rollout·Argo CD·웹/API·DB를 각각 확인합니다. 관측한 요청 표본을 무중단 보장으로 확대하지 않습니다.
+- **문제 해결:** 증상→원인→조치→재검증으로 설명합니다. HPA replicas 충돌과 Certificate 중복 관리는 별개의 문제입니다. [문제 분석 및 해결](../TROUBLESHOOTING.md)
+- **재구축:** OIDC·kubeconfig·NLB·RDS Endpoint·Secret·볼륨 연결을 다시 확인합니다. 코드 보존은 데이터 백업을 대신하지 않습니다.
+- **종료:** Terraform 밖의 자원, EBS·스냅샷·S3 버전·로그를 별도로 확인합니다. 자원 중지·삭제·비용 종료는 다른 작업입니다.

@@ -8,7 +8,7 @@
 
 ---
 
-**시작 전** · 계정·도메인·OIDC·서브넷·이미지 주소 변경. `stable/latest` URL은 버전 미고정.
+**시작 전** · 계정·도메인·OIDC·서브넷·이미지 주소를 환경에 맞게 변경합니다. `stable/latest` 설치 URL은 버전이 고정되어 있지 않습니다.
 
 ---
 
@@ -37,7 +37,7 @@ git --version
 
 ## 2. Terraform 적용
 
-`terraform/variables.tf` 기준으로 로컬 `terraform.tfvars` 작성.
+`terraform/variables.tf`를 기준으로 로컬 `terraform.tfvars`를 작성합니다.
 
 | 항목 | 구성값 |
 | :--- | :--- |
@@ -45,7 +45,7 @@ git --version
 | **인스턴스** | `t3.large` |
 | **노드 수** | min 2 · desired 2 · max 4 |
 
-> **인증값 관리** · tfvars·State·실제 비밀번호는 Git 추적 제외. `sensitive`는 일반 출력만 가림.
+> **인증값 관리** · tfvars·State·실제 비밀번호는 Git 추적에서 제외합니다. `sensitive`는 일반 출력만 가리며 State 자체를 암호화하지 않습니다.
 
 ```powershell
 Set-Location C:\yjeee-deployshop\terraform
@@ -57,7 +57,7 @@ terraform apply
 terraform output
 ```
 
-> **DB 접근** · Public RDS 유지. `workbench_allowed_cidr = "<접속_PC_공인_IP>/32"`로 외부 접근 제한, EKS 보안 그룹 규칙 별도 유지.
+> **DB 접근** · Public RDS를 유지하며 `workbench_allowed_cidr`를 PC 공인 IP `/32`로 제한합니다. EKS 보안 그룹 규칙은 별도로 유지합니다.
 
 ---
 
@@ -75,9 +75,9 @@ kubectl create namespace soldesk
 | **`my-app-secrets`** | `DB_HOST`·`DB_PW` | 앱 → RDS 연결 |
 | **`aws-secret`** | `AWS_ACCESS_KEY_ID`·`AWS_SECRET_ACCESS_KEY` | 상품 이미지 S3 업로드 |
 
-기존 Secret의 키·적용 범위 확인. 실제 값이 들어 있는 YAML은 Git 추적 제외.
+기존 Secret의 키와 적용 범위를 확인합니다. 실제 값이 들어 있는 YAML은 Git 추적에서 제외합니다.
 
-AWS 프로필용 자격 증명, GitHub Actions 인증, 상품 S3 전용 IAM 키, Pod용 IRSA는 서로 용도가 다름. S3 전용 키는 Terraform의 `product_s3_access_key_id`·`product_s3_secret_access_key` 출력에서 로컬 변수로 받아 사용.
+AWS 프로필·Actions 인증·상품 S3 키·Pod IRSA는 용도가 다릅니다. S3 키는 Terraform의 `product_s3_access_key_id`·`product_s3_secret_access_key` 출력에서 로컬 변수로 받아 사용합니다.
 
 ---
 
@@ -88,7 +88,7 @@ AWS 프로필용 자격 증명, GitHub Actions 인증, 상품 S3 전용 IAM 키,
 | **Backend** | JDK 17 bootJar → JRE 17 |
 | **Frontend** | NGINX 정적 파일 제공 |
 
-Actions Secrets `AWS_KEY`·`AWS_SECRET` 등록, 해당 IAM principal의 EKS Access Entry·접근 정책 연결. 변경 경로 확인 → 이미지 빌드·push → kubectl apply·rollout restart.
+Actions Secrets에 인증값을 등록하고 EKS Access Entry·접근 정책을 연결합니다. 변경 경로 감지 후 이미지 빌드·push와 kubectl apply·rollout restart를 수행합니다.
 
 ```powershell
 kubectl apply -f deploy/k8s/apps/apigateway
@@ -99,7 +99,7 @@ kubectl apply -f deploy/k8s/apps/frontend
 kubectl get pods,svc -n soldesk
 ```
 
-> **배포 방식** · `latest` 이미지·Actions 직접 배포·Argo CD 선언 동기화 병행.
+> **배포 방식** · `latest` 이미지를 사용하며 Actions 직접 배포와 Argo CD 선언 동기화를 병행합니다.
 
 ---
 
@@ -114,7 +114,7 @@ kubectl apply -f deploy/k8s/platform/ingress
 kubectl get ingress,certificate -n soldesk
 ```
 
-Route 53의 `server`·`argo`·`prometheus`·`grafana` 호스트를 NLB로 연결. HTTP-01 발급 전 DNS·외부 HTTP 접근 확인. ClusterIssuer `my-issuer`·namespace별 Certificate로 TLS Secret 생성.
+Route 53 호스트를 NLB로 연결합니다. DNS·외부 HTTP 접근을 확인한 뒤 ClusterIssuer `my-issuer`와 namespace별 Certificate로 TLS Secret을 생성합니다.
 
 ---
 
@@ -129,7 +129,7 @@ kubectl apply -f deploy/argocd/root-app.yml
 kubectl get applications -n argocd
 ```
 
-TLS는 Ingress에서 종료하고 Argo 서버는 HTTP로 연결하도록 `argocd-cmd-params-cm`의 `server.insecure: "true"`를 설정하고 서버를 재시작. 초기 admin 비밀번호는 로컬에서 확인하고 로그인 후 변경.
+TLS는 Ingress에서 종료합니다. `server.insecure: "true"`로 Argo 서버에 HTTP를 전달하고, 초기 admin 비밀번호를 변경합니다.
 
 | 제어 대상 | 관리 기준 |
 | :--- | :--- |
@@ -153,13 +153,13 @@ kubectl get hpa -n soldesk
 kubectl logs -n kube-system deployment/cluster-autoscaler --tail=60
 ```
 
-CA 적용 전 콘솔에서 EKS OIDC Provider, `autoscaling-pod-role`의 IRSA trust와 권한을 준비. ASG discovery 태그와 Terraform의 desired size 변경 무시 설정도 연결됨.
+CA 적용 전 OIDC Provider와 `autoscaling-pod-role`의 IRSA trust·권한을 준비합니다. ASG discovery 태그와 Terraform의 desired size 변경 무시 설정도 확인합니다.
 
 ---
 
 ## 8. 모니터링·Grafana EBS
 
-EBS CSI 역할 및 애드온을 먼저 준비하고 monitoring을 동기화. 상세 콘솔 순서는 [복습 노트의 EBS 절차](learning/STUDY-NOTES.md#12-grafana-ebs-영구-저장소-상세)에 있음.
+EBS CSI 역할·애드온을 준비한 뒤 monitoring을 동기화합니다. 상세 절차는 [복습 노트의 EBS 절차](learning/STUDY-NOTES.md#12-grafana-ebs-영구-저장소-상세)를 참고합니다.
 
 ```powershell
 kubectl get csidriver ebs.csi.aws.com
@@ -169,9 +169,9 @@ kubectl get pvc -n monitoring
 kubectl get pods,svc,certificate -n monitoring
 ```
 
-1. Git 반영 → Argo CD Sync.
-2. Grafana 초기 비밀번호 변경 → Prometheus 연결 → 대시보드 설정.
-3. 설정 저장 → restart → 계정·데이터 소스·대시보드 유지 확인.
+1. Git 반영 후 Argo CD로 Sync합니다.
+2. 초기 비밀번호를 변경하고 Prometheus 데이터 소스와 대시보드를 설정합니다.
+3. 설정을 저장하고 재시작한 뒤 계정·데이터 소스·대시보드 유지를 확인합니다.
 
 > **정상 상태** · EBS CSI 정상 · PVC `Bound` · Grafana Ready · 재시작 후 설정 유지.
 
@@ -179,9 +179,9 @@ kubectl get pods,svc,certificate -n monitoring
 
 ## 9. CloudWatch·SNS 및 기능 검증
 
-Terraform 적용 후 SNS 이메일의 구독 확인 링크를 직접 승인. SNS 테스트 메시지와 수동 CloudWatch ALARM 전환으로 알림 경로 확인. EKS control plane의 api·audit·authenticator 로그 스트림 확인.
+Terraform 적용 후 SNS 이메일 구독을 승인합니다. 테스트 메시지와 수동 ALARM 전환으로 전달 경로를 확인하고 EKS 제어 영역 로그 스트림을 조회합니다.
 
-웹에서 로그인·상품 조회·구매를 수행하고 Postman의 Bearer 인증 주문 및 Workbench SELECT로 재고·주문을 대조. 부하 테스트 종료 후 load Pod를 삭제하고 HPA 축소 확인. [실행 및 검증 결과](VALIDATION.md)에 기대값과 관찰값이 있음.
+웹 구매·Postman 주문·Workbench SELECT로 재고와 주문을 대조합니다. 부하 Pod 삭제 후 HPA 축소도 확인합니다. 관찰값은 [실행 및 검증 결과](VALIDATION.md)에 정리했습니다.
 
 ---
 
@@ -195,4 +195,4 @@ Terraform 적용 후 SNS 이메일의 구독 확인 링크를 직접 승인. SNS
 | **CloudWatch** | 로그 그룹 `prevent_destroy` |
 | **Terraform** | 로컬 State 보존 |
 
-> **기억할 점** · PVC 유지와 Retain은 삭제 방지 설정. 백업과 복구는 별도.
+> **기억할 점** · PVC 유지와 Retain은 삭제 방지 설정입니다. 백업과 복구는 별도로 준비해야 합니다.
