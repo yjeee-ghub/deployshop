@@ -26,6 +26,8 @@
 
 **원인** · 메모리 부족으로 종료, 영구 저장소 미연결로 설정 소실. 메모리와 저장소 각각 조치 필요.
 
+**조치**
+
 | 조치 대상 | 변경 내용 |
 | :--- | :--- |
 | 메모리 | request 512Mi / limit 1Gi |
@@ -60,7 +62,9 @@ kubectl get application msa-monitoring -n argocd
 
 ## 3. monitoring Certificate가 계속 OutOfSync
 
-**증상** · Git의 명시적 Certificate와 Ingress의 cert-manager 자동 인증서 생성 설정이 같은 인증서를 관리. `duration: 2160h`, `renewBefore: 360h` 차이가 반복됨.
+**증상** · monitoring Certificate의 `duration: 2160h`·`renewBefore: 360h` 차이로 OutOfSync 반복.
+
+**원인** · Git의 명시적 Certificate와 Ingress 자동 생성 설정이 같은 인증서를 중복 관리.
 
 **조치** · Ingress의 `cert-manager.io/cluster-issuer` annotation 제거. 명시적 Certificate·TLS Secret 참조 유지.
 
@@ -72,7 +76,9 @@ kubectl get application msa-monitoring -n argocd
 
 ## 4. HPA와 Argo CD의 replicas 제어 충돌
 
-**증상·원인** · HPA의 자동 확장 후 Argo CD selfHeal이 Git의 고정 replicas를 재적용. 같은 필드를 두 컨트롤러가 관리해 Pod 수 복귀 발생.
+**증상** · HPA 확장 후 Pod 수가 Git의 고정 replicas로 복귀.
+
+**원인** · HPA와 Argo CD selfHeal이 같은 replicas 필드를 제어.
 
 **조치** · apigateway·member·product·ordering Application에 `/spec/replicas` `ignoreDifferences`·`RespectIgnoreDifferences=true` 적용. replicas는 HPA, 나머지 선언은 Argo CD가 관리.
 
@@ -101,21 +107,29 @@ syncPolicy:
 
 ## 5. Prometheus Pending / Insufficient cpu
 
-**증상** · 모니터링 배포 중 Pod의 CPU request를 수용할 노드 여유가 부족.
+**증상** · 모니터링 배포 중 Prometheus Pod Pending·`Insufficient cpu`.
 
-> **확인 결과** · `kubectl describe pod`의 Events, `kubectl top nodes`, CA 로그를 함께 확인. CA가 노드를 늘린 후 배치됨. HPA 상품 부하 테스트의 2→3노드 변화와 모니터링 설치 시점의 4노드 화면은 서로 다른 시점.
+**원인** · 기존 노드의 할당 가능한 CPU가 Pod request를 수용하기에 부족. 실제 CPU 사용률과 스케줄링 여유는 별개.
+
+**조치** · Pod Events·`kubectl top nodes`·CA 로그로 자원·확장 상태 확인. CA의 노드 추가 후 재배치 확인.
+
+> **확인 결과** · 노드 확장 후 Prometheus 배치. 상품 부하 테스트와 모니터링 설치 화면의 노드 수는 서로 다른 시점.
 
 ---
 
 ## 6. Argo CD 설치 시 큰 CRD annotation 문제
 
-**문제** · 대형 CRD의 client-side apply 시 annotation 크기 제한.
+**증상** · Argo CD 설치 과정에서 대형 CRD의 annotation 크기 제한 문제.
+
+**원인** · client-side apply가 리소스 구성을 last-applied annotation에 저장해 크기 제한에 도달 가능.
 
 **조치** · server-side apply로 설치. `--force-conflicts`는 충돌 필드의 소유권 강제 변경 옵션.
 
 ```powershell
 kubectl apply --server-side --force-conflicts -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 ```
+
+> **확인 결과** · server-side apply로 설치 진행 후 Argo CD Application 관리·self-heal 확인.
 
 ---
 
