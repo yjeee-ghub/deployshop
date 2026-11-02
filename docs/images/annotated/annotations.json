@@ -1,0 +1,1180 @@
+[
+  {
+    "number": 1,
+    "source": "docs/images/evidence-01.png",
+    "source_sha256": "1271b8926cbb40cd9364a1dbeaca72baeafd0928b1faf514be8917b3014ecf36",
+    "crop": [
+      0,
+      24,
+      760,
+      104
+    ],
+    "boxes": [
+      [
+        204,
+        49,
+        505,
+        26,
+        "replicas=2로 변경"
+      ],
+      [
+        10,
+        72,
+        365,
+        23,
+        "scaled 실행 결과"
+      ]
+    ]
+  },
+  {
+    "number": 2,
+    "source": "docs/images/evidence-02.png",
+    "source_sha256": "d443591e40af568c05be12f0aa3e7c2692b207fd231b7f9e945617454514a525",
+    "crop": [
+      0,
+      38,
+      730,
+      480
+    ],
+    "boxes": [
+      [
+        135,
+        182,
+        110,
+        80,
+        "watch 출력에서 1/1 복귀"
+      ],
+      [
+        8,
+        465,
+        429,
+        28,
+        "최종 Deployment 1/1"
+      ]
+    ]
+  },
+  {
+    "number": 3,
+    "source": "docs/images/evidence-03.png",
+    "source_sha256": "2803135a39922b061c6b920aeaad4fbc2c6010e9491e038a7147822b785825b5",
+    "crop": [
+      230,
+      285,
+      1665,
+      750
+    ],
+    "boxes": [
+      [
+        688,
+        698,
+        330,
+        112,
+        "monitoring의 OutOfSync — 최종 정상 화면 아님"
+      ]
+    ]
+  },
+  {
+    "number": 4,
+    "source": "docs/images/evidence-04.png",
+    "source_sha256": "5bfc1705d017900c8ed9f218a36a1cb548f265931ebff14d1b91e4097487455a",
+    "crop": [
+      337,
+      219,
+      1478,
+      671
+    ],
+    "boxes": [
+      [
+        345,
+        244,
+        520,
+        55,
+        "autoscaling-pod-role"
+      ],
+      [
+        452,
+        708,
+        285,
+        102,
+        "실습에서 연결한 정책 목록"
+      ]
+    ]
+  },
+  {
+    "number": 5,
+    "source": "docs/images/evidence-05.png",
+    "source_sha256": "3948171d61cef43351f4399f72ae5ac804ba47bbde8ac874a3e162740602131d",
+    "crop": [
+      0,
+      23,
+      1530,
+      877
+    ],
+    "boxes": [
+      [
+        12,
+        48,
+        1500,
+        58,
+        "반복 조회 부하 생성"
+      ],
+      [
+        601,
+        145,
+        39,
+        255,
+        "HPA replicas 1 → 2 → 4 → 5"
+      ],
+      [
+        8,
+        468,
+        1260,
+        118,
+        "상품 Pod 5개와 배치 노드"
+      ],
+      [
+        8,
+        601,
+        958,
+        58,
+        "Ready 노드 3개"
+      ]
+    ]
+  },
+  {
+    "number": 6,
+    "source": "docs/images/evidence-06.png",
+    "source_sha256": "93996bb23574a9929ed44f2bb4e33b5a8e8d20afb8103b17658fa359e45c2421",
+    "crop": [
+      0,
+      24,
+      780,
+      326
+    ],
+    "boxes": [
+      [
+        7,
+        49,
+        552,
+        44,
+        "부하 Pod 삭제"
+      ],
+      [
+        326,
+        126,
+        112,
+        195,
+        "CPU 40% → 32% → 5% → 0%"
+      ],
+      [
+        605,
+        126,
+        40,
+        195,
+        "replicas 5 → 1"
+      ]
+    ]
+  },
+  {
+    "number": 7,
+    "source": "docs/images/evidence-07.png",
+    "source_sha256": "df8a3832ae634bcd26459283f8245dd2495f17cec99697b98ea400461d07da86",
+    "crop": [
+      300,
+      330,
+      1305,
+      590
+    ],
+    "boxes": [
+      [
+        325,
+        701,
+        280,
+        140,
+        "최종 검증 상품의 재고 — 본문 단계와 대조"
+      ]
+    ]
+  },
+  {
+    "number": 8,
+    "source": "docs/images/evidence-08.png",
+    "source_sha256": "04379fff6a9295db7db6d12c82ad817c168aac9437f2f039cb8c13e410fa63b7",
+    "crop": [
+      210,
+      282,
+      1015,
+      383
+    ],
+    "boxes": [
+      [
+        276,
+        307,
+        154,
+        25,
+        "동일 상품 ID 2 조회"
+      ],
+      [
+        232,
+        590,
+        515,
+        40,
+        "상품 ID 2 · stock_quantity=10"
+      ]
+    ]
+  },
+  {
+    "number": 9,
+    "source": "docs/images/evidence-09.png",
+    "source_sha256": "a0cb63bba54b09556d5d3eab24286e4939c252e017cb773a625486dd72446815",
+    "crop": [
+      300,
+      330,
+      1305,
+      590
+    ],
+    "boxes": [
+      [
+        325,
+        701,
+        280,
+        140,
+        "최종 검증 상품의 재고 — 본문 단계와 대조"
+      ]
+    ]
+  },
+  {
+    "number": 10,
+    "source": "docs/images/evidence-10.png",
+    "source_sha256": "7f3956978cdf02bb83999e1fb6ad642e744c4d4ff60cb35d97d503b0f02dc833",
+    "crop": [
+      410,
+      100,
+      1155,
+      625
+    ],
+    "boxes": [
+      [
+        490,
+        231,
+        180,
+        55,
+        "productId=2 · 수량 8"
+      ],
+      [
+        1144,
+        585,
+        126,
+        29,
+        "400 Bad Request"
+      ],
+      [
+        467,
+        671,
+        130,
+        30,
+        "재고 부족 응답"
+      ]
+    ]
+  },
+  {
+    "number": 11,
+    "source": "docs/images/evidence-11.png",
+    "source_sha256": "5d7ddeba8b25a835f153cb159b049cb277d6dd0797cba4f312568f0343b759e2",
+    "crop": [
+      210,
+      282,
+      1015,
+      383
+    ],
+    "boxes": [
+      [
+        276,
+        307,
+        154,
+        25,
+        "동일 상품 ID 2 조회"
+      ],
+      [
+        232,
+        590,
+        515,
+        40,
+        "상품 ID 2 · stock_quantity=7"
+      ]
+    ]
+  },
+  {
+    "number": 12,
+    "source": "docs/images/evidence-12.png",
+    "source_sha256": "d1981aca89fa8e5baea8aa8e3c79331f3ddcfe8ff444df3ee47d04bfbaedd564",
+    "crop": [
+      210,
+      282,
+      1015,
+      393
+    ],
+    "boxes": [
+      [
+        276,
+        307,
+        154,
+        25,
+        "product_id=2 조건"
+      ],
+      [
+        232,
+        590,
+        329,
+        60,
+        "주문 ID·수량·상태 2건"
+      ]
+    ]
+  },
+  {
+    "number": 13,
+    "source": "docs/images/evidence-13.png",
+    "source_sha256": "da59b9084e32e4cb85fd545e4690f518cb34973a29159cb5d9d5b830db7198f3",
+    "crop": [
+      300,
+      330,
+      1305,
+      590
+    ],
+    "boxes": [
+      [
+        325,
+        701,
+        280,
+        140,
+        "최종 검증 상품의 재고 — 본문 단계와 대조"
+      ]
+    ]
+  },
+  {
+    "number": 14,
+    "source": "docs/images/evidence-14.png",
+    "source_sha256": "611df088190db6d67a4739e804bcbc63854efc561a888151f218e0dfe9e25f0a",
+    "crop": [
+      171,
+      23,
+      1434,
+      974
+    ],
+    "boxes": [
+      [
+        179,
+        48,
+        320,
+        28,
+        "URL의 상품 ID 2"
+      ],
+      [
+        743,
+        129,
+        237,
+        36,
+        "주문 완료 알림 — 실제 재고는 재조회로 확인"
+      ]
+    ]
+  },
+  {
+    "number": 15,
+    "source": "docs/images/evidence-15.png",
+    "source_sha256": "030f6e9f607a4a0e8a1dc247f97b9635d6f08b31ef4601c2041f96eb9e001394",
+    "crop": [
+      210,
+      282,
+      1015,
+      383
+    ],
+    "boxes": [
+      [
+        276,
+        307,
+        154,
+        25,
+        "동일 상품 ID 2 조회"
+      ],
+      [
+        232,
+        590,
+        515,
+        40,
+        "상품 ID 2 · stock_quantity=9"
+      ]
+    ]
+  },
+  {
+    "number": 16,
+    "source": "docs/images/evidence-16.png",
+    "source_sha256": "b8b1c07691a5f9d60dc55d9252e24ef4dd76f30813545f5cd288eec36aba9e9e",
+    "crop": [
+      210,
+      282,
+      1015,
+      393
+    ],
+    "boxes": [
+      [
+        276,
+        307,
+        154,
+        25,
+        "product_id=2 조건"
+      ],
+      [
+        232,
+        590,
+        329,
+        40,
+        "주문 ID·수량·상태 1건"
+      ]
+    ]
+  },
+  {
+    "number": 17,
+    "source": "docs/images/login-redacted.png",
+    "source_sha256": "37c306a68a961134398895569c70c6856200dc14750dbe26f32d2e70f797ad39",
+    "crop": [
+      0,
+      0,
+      1705,
+      923
+    ],
+    "boxes": []
+  },
+  {
+    "number": 18,
+    "source": "docs/images/evidence-18.png",
+    "source_sha256": "74151d52e2beeeda7dea3f46a0493376993454bcd7ca6355a901cd5fe9fd5c67",
+    "crop": [
+      410,
+      89,
+      1155,
+      732
+    ],
+    "boxes": [
+      [
+        533,
+        114,
+        385,
+        29,
+        "GET /product-service/product/2"
+      ],
+      [
+        492,
+        767,
+        171,
+        29,
+        "stockQuantity: 9"
+      ]
+    ]
+  },
+  {
+    "number": 19,
+    "source": "docs/images/evidence-19.png",
+    "source_sha256": "2f6b548ff5601858bbe35b9d08c38bf4514fd9c8acf1139be69c2f63ce6da919",
+    "crop": [
+      410,
+      100,
+      1155,
+      625
+    ],
+    "boxes": [
+      [
+        490,
+        231,
+        180,
+        55,
+        "productId=2 · 수량 2"
+      ],
+      [
+        1176,
+        585,
+        99,
+        29,
+        "201 Created"
+      ],
+      [
+        467,
+        642,
+        130,
+        30,
+        "새 주문 ID 4"
+      ]
+    ]
+  },
+  {
+    "number": 20,
+    "source": "docs/images/evidence-20.png",
+    "source_sha256": "05a97770109c7869e09882c1246fcb01792a35bd8e0b0c42e321842aedc06695",
+    "crop": [
+      210,
+      282,
+      1015,
+      383
+    ],
+    "boxes": [
+      [
+        276,
+        307,
+        154,
+        25,
+        "동일 상품 ID 2 조회"
+      ],
+      [
+        232,
+        590,
+        515,
+        40,
+        "상품 ID 2 · stock_quantity=7"
+      ]
+    ]
+  },
+  {
+    "number": 21,
+    "source": "docs/images/evidence-21.png",
+    "source_sha256": "a2c8239d288e00a262efc112e38e19c81a011a74e7f5a1b2ea1297940a690871",
+    "crop": [
+      210,
+      282,
+      1015,
+      393
+    ],
+    "boxes": [
+      [
+        276,
+        307,
+        154,
+        25,
+        "product_id=2 조건"
+      ],
+      [
+        232,
+        590,
+        329,
+        60,
+        "주문 ID·수량·상태 2건"
+      ]
+    ]
+  },
+  {
+    "number": 22,
+    "source": "docs/images/evidence-22.png",
+    "source_sha256": "620c5c8d0fad058977ee639b7d610d626fbfce703d53b11b2d1b7f79c812f6a8",
+    "crop": [
+      20,
+      5,
+      640,
+      155
+    ],
+    "boxes": [
+      [
+        49,
+        115,
+        425,
+        28,
+        "Workbench 허용 출발지를 PC /32로 지정"
+      ]
+    ]
+  },
+  {
+    "number": 23,
+    "source": "docs/images/evidence-23.png",
+    "source_sha256": "3cb075cc2655b1f467a2fefc189a7177980d18af41169d0fe4a95429213719c2",
+    "crop": [
+      210,
+      150,
+      1015,
+      877
+    ],
+    "boxes": [
+      [
+        235,
+        505,
+        515,
+        42,
+        "조회된 상품 ID 2 · 재고 7"
+      ],
+      [
+        269,
+        882,
+        907,
+        137,
+        "USE ordermsa 이후 SELECT 성공 — 초기 1046과 구분"
+      ]
+    ]
+  },
+  {
+    "number": 24,
+    "source": "docs/images/evidence-24.png",
+    "source_sha256": "b4ae371e1306eed163fa3783d334ac4bc46ebc0c805df8280a8ddc7d634ee546",
+    "crop": [
+      275,
+      590,
+      1600,
+      205
+    ],
+    "boxes": [
+      [
+        1029,
+        708,
+        590,
+        29,
+        "PC 공인 IP /32 규칙"
+      ],
+      [
+        1029,
+        744,
+        630,
+        29,
+        "별도의 EKS 보안 그룹 규칙"
+      ]
+    ]
+  },
+  {
+    "number": 25,
+    "source": "docs/images/evidence-25.png",
+    "source_sha256": "1564fbdb89593722fc86172a0bd57fbe5bf9ff5af9cc384f9e640d44fb6a6829",
+    "crop": [
+      526,
+      721,
+      1360,
+      270
+    ],
+    "boxes": [
+      [
+        875,
+        812,
+        330,
+        34,
+        "CPU 80 이상 평가 조건"
+      ],
+      [
+        1557,
+        766,
+        283,
+        34,
+        "평가 데이터 포인트 2/2"
+      ],
+      [
+        1215,
+        944,
+        132,
+        37,
+        "평가 기간 5분"
+      ]
+    ]
+  },
+  {
+    "number": 26,
+    "source": "docs/images/evidence-26.png",
+    "source_sha256": "e85e79cc3e57b22585614e2fe47ff91a0df585ee2cf059008dbf38ed7869249d",
+    "crop": [
+      562,
+      735,
+      1328,
+      201
+    ],
+    "boxes": [
+      [
+        588,
+        842,
+        1025,
+        29,
+        "OK 상태 알림 작업"
+      ],
+      [
+        588,
+        878,
+        1025,
+        29,
+        "ALARM 상태 알림 작업"
+      ]
+    ]
+  },
+  {
+    "number": 27,
+    "source": "docs/images/evidence-27.png",
+    "source_sha256": "ee7483c01837ebd40daa75d8548dccea7ef0282fa95c2fbb1044e4b59e7a52df",
+    "crop": [
+      560,
+      689,
+      1328,
+      305
+    ],
+    "boxes": [
+      [
+        574,
+        787,
+        1047,
+        50,
+        "수동 테스트 이전 상태·액션 이력 — 이후 결과와 구분"
+      ]
+    ]
+  },
+  {
+    "number": 28,
+    "source": "docs/images/evidence-28.png",
+    "source_sha256": "80fa1af1c399e1d82d32e92dd2e19173ad29b726d88e4ff6168aeb7a39a36f7c",
+    "crop": [
+      0,
+      0,
+      628,
+      145
+    ],
+    "boxes": [
+      [
+        37,
+        43,
+        205,
+        22,
+        "state-value ALARM"
+      ],
+      [
+        166,
+        62,
+        409,
+        23,
+        "Manual notification path test — 실제 부하 아님"
+      ]
+    ]
+  },
+  {
+    "number": 29,
+    "source": "docs/images/evidence-29.png",
+    "source_sha256": "37db191d3cfa844a1cb8d45f842e06838455f363189fddbcde7cf99c24d26cb1",
+    "crop": [
+      313,
+      225,
+      1572,
+      717
+    ],
+    "boxes": [
+      [
+        321,
+        250,
+        679,
+        32,
+        "CloudWatch ALARM 메일"
+      ],
+      [
+        324,
+        501,
+        500,
+        44,
+        "OK → ALARM · 수동 테스트 사유"
+      ]
+    ]
+  },
+  {
+    "number": 30,
+    "source": "docs/images/evidence-30.png",
+    "source_sha256": "91d2edf1b165e7b5f695e4e19e9c30c61fadb1c7514fd4dfdd3c54e36f3986d4",
+    "crop": [
+      558,
+      689,
+      1330,
+      305
+    ],
+    "boxes": [
+      [
+        573,
+        788,
+        1048,
+        95,
+        "11:07 ALARM → 11:08 OK 전환과 작업 실행"
+      ]
+    ]
+  },
+  {
+    "number": 31,
+    "source": "docs/images/sns-email-redacted.png",
+    "source_sha256": "3ab2f03eb3efc99826b7b30e6cf1c1bab61d14add2921bf3785fe9546d246463",
+    "crop": [
+      0,
+      0,
+      1704,
+      923
+    ],
+    "boxes": []
+  },
+  {
+    "number": 32,
+    "source": "docs/images/evidence-32.png",
+    "source_sha256": "c30a76f116e623bd89d291d09417e7d623170243e691215ce40eee77ef142511",
+    "crop": [
+      253,
+      369,
+      1625,
+      626
+    ],
+    "boxes": [
+      [
+        315,
+        564,
+        598,
+        136,
+        "api · audit · authenticator 로그 스트림"
+      ],
+      [
+        1094,
+        564,
+        246,
+        136,
+        "로그 스트림별 마지막 이벤트 시각"
+      ]
+    ]
+  },
+  {
+    "number": 33,
+    "source": "docs/images/evidence-33.png",
+    "source_sha256": "9b42db225da2c5d4230d05c0c420e6d46189b4b485051fdec1a112688ef5da9c",
+    "crop": [
+      632,
+      735,
+      935,
+      188
+    ],
+    "boxes": [
+      [
+        669,
+        820,
+        128,
+        83,
+        "AWS_KEY · AWS_SECRET 등록 — 값은 표시하지 않음"
+      ]
+    ]
+  },
+  {
+    "number": 34,
+    "source": "docs/images/evidence-34.png",
+    "source_sha256": "0a9a2d9f7d4041fd8cca5115e3c3d5b57dd4bba76517cf8d05096da106952393",
+    "crop": [
+      349,
+      322,
+      1545,
+      351
+    ],
+    "boxes": [
+      [
+        679,
+        347,
+        95,
+        53,
+        "Workflow Status: Success"
+      ],
+      [
+        386,
+        553,
+        250,
+        45,
+        "build-and-deploy 작업 성공"
+      ]
+    ]
+  },
+  {
+    "number": 35,
+    "source": "docs/images/evidence-35.png",
+    "source_sha256": "e3a32aa54f18bc3c69fd8c6efb2373d31defce77e36bd72172b61528e58c131a",
+    "crop": [
+      0,
+      0,
+      982,
+      200
+    ],
+    "boxes": [
+      [
+        70,
+        153,
+        102,
+        30,
+        "restartCount 1"
+      ],
+      [
+        173,
+        153,
+        81,
+        30,
+        "Reason OOMKilled"
+      ],
+      [
+        289,
+        153,
+        43,
+        30,
+        "ExitCode 137"
+      ]
+    ]
+  },
+  {
+    "number": 36,
+    "source": "docs/images/evidence-36.png",
+    "source_sha256": "3e122c0007b9eab8de82f876542ea185384e3dad40e5d541ae1cc2ccd4b06fda",
+    "crop": [
+      335,
+      278,
+      1513,
+      758
+    ],
+    "boxes": [
+      [
+        545,
+        307,
+        552,
+        153,
+        "CPU · RAM 등 노드 지표"
+      ],
+      [
+        355,
+        499,
+        1485,
+        263,
+        "CPU·메모리 시계열"
+      ],
+      [
+        355,
+        769,
+        1485,
+        259,
+        "네트워크·디스크 시계열"
+      ]
+    ]
+  },
+  {
+    "number": 37,
+    "source": "docs/images/evidence-37.png",
+    "source_sha256": "ea81ce8835c1acb8f49bc347da2782f9ec9f385376f9c46eb8eec190a9d2eb41",
+    "crop": [
+      334,
+      218,
+      1510,
+      622
+    ],
+    "boxes": [
+      [
+        345,
+        243,
+        730,
+        284,
+        "앱 수집 상태와 시계열"
+      ],
+      [
+        1099,
+        544,
+        733,
+        284,
+        "HTTP 요청률 변화 — 업무 성공 검증과 별개"
+      ]
+    ]
+  },
+  {
+    "number": 38,
+    "source": "docs/images/evidence-38.png",
+    "source_sha256": "fd83d69aa4d0d4268a6d26346af11e0d4f3878ceb6897ed07faca48c1651e64c",
+    "crop": [
+      10,
+      236,
+      1897,
+      609
+    ],
+    "boxes": [
+      [
+        1757,
+        261,
+        97,
+        35,
+        "node-exporter 4/4 UP"
+      ],
+      [
+        1757,
+        562,
+        97,
+        35,
+        "spring-apps 4/4 UP"
+      ]
+    ]
+  },
+  {
+    "number": 39,
+    "source": "docs/images/evidence-39.png",
+    "source_sha256": "832867fbf11c81613ac811e81af9b32b750365d75bd192f18b2c0b5061f8c676",
+    "crop": [
+      10,
+      179,
+      1900,
+      341
+    ],
+    "boxes": [
+      [
+        48,
+        204,
+        200,
+        32,
+        "수집 대상 job 조건"
+      ],
+      [
+        1875,
+        377,
+        27,
+        133,
+        "각 시계열 up=1"
+      ]
+    ]
+  },
+  {
+    "number": 40,
+    "source": "docs/images/evidence-40.png",
+    "source_sha256": "97d06ea91c6aae180222fc5e125ff932757537dab77fd802cdaaaba9668e8641",
+    "crop": [
+      10,
+      179,
+      1900,
+      341
+    ],
+    "boxes": [
+      [
+        48,
+        204,
+        200,
+        32,
+        "수집 대상 job 조건"
+      ],
+      [
+        1875,
+        377,
+        27,
+        133,
+        "각 시계열 up=1"
+      ]
+    ]
+  },
+  {
+    "number": 41,
+    "source": "docs/images/evidence-41.png",
+    "source_sha256": "67f4445d0c3a846c8cf032d163d889ff5e56e32a0dd71e470cf4f8ffe2315298",
+    "crop": [
+      170,
+      23,
+      1440,
+      975
+    ],
+    "boxes": [
+      [
+        178,
+        48,
+        338,
+        29,
+        "상품 ID 1 — 최종 ID 2 검증과 구분"
+      ],
+      [
+        744,
+        131,
+        335,
+        31,
+        "구매 완료 안내"
+      ]
+    ]
+  },
+  {
+    "number": 42,
+    "source": "docs/images/evidence-42.png",
+    "source_sha256": "7c69d9a7daa866ef3269dd569855a600f1af266fa4278565b2eed76476ef8ce9",
+    "crop": [
+      170,
+      23,
+      1435,
+      975
+    ],
+    "boxes": [
+      [
+        178,
+        48,
+        338,
+        29,
+        "상품 ID 1 — 별도 시점의 기능 화면"
+      ],
+      [
+        888,
+        272,
+        402,
+        240,
+        "상품 이미지·상세·재고 표시"
+      ]
+    ]
+  },
+  {
+    "number": 43,
+    "source": "docs/images/evidence-43.png",
+    "source_sha256": "ccf6698a1f46461bc459837534438bd17d1c895741c776d28a360274dde96adf",
+    "crop": [
+      170,
+      23,
+      1435,
+      975
+    ],
+    "boxes": [
+      [
+        178,
+        48,
+        338,
+        29,
+        "상품 ID 1 — 별도 시점의 기능 화면"
+      ],
+      [
+        888,
+        272,
+        402,
+        240,
+        "상품 이미지·상세·재고 표시"
+      ]
+    ]
+  },
+  {
+    "number": 44,
+    "source": "docs/images/evidence-44.png",
+    "source_sha256": "b087d9f6064700a709ed702fa12909a6df189b39002613f94fa7bf9d192eda57",
+    "crop": [
+      660,
+      350,
+      600,
+      520
+    ],
+    "boxes": [
+      [
+        706,
+        754,
+        508,
+        57,
+        "로그인 성공 안내 — 단독으로 주문 성공을 뜻하지 않음"
+      ]
+    ]
+  },
+  {
+    "number": 45,
+    "source": "docs/images/evidence-45.png",
+    "source_sha256": "019cda33b31fea6437b0ecc8f70d48cd4397c1580ee267e85b17bfbfa678b730",
+    "crop": [
+      342,
+      216,
+      1473,
+      321
+    ],
+    "boxes": [
+      [
+        350,
+        241,
+        156,
+        38,
+        "상품 이미지 products/ 경로"
+      ],
+      [
+        421,
+        479,
+        315,
+        44,
+        "업로드된 이미지 객체"
+      ]
+    ]
+  }
+]
