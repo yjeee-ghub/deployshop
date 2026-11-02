@@ -51,7 +51,6 @@ FROM ordering WHERE product_id = @product_id ORDER BY id;
 - Grafana 노드 대시보드에서 CPU·RAM·디스크·네트워크 확인.
 - 앱 대시보드 4개 패널: up·프로세스 CPU·Heap·HTTP 요청률.
 - 상태 확인 경로를 제외한 HTTP 요청 그래프에서 웹 조회 후 증가 확인.
-- 대시보드 JSON 원본은 HTTP 쿼리 수정 전 내보내기입니다. 수정 쿼리를 적용한 파생 사본과 구분했습니다.
 
 ## 5. Grafana 장애·보존
 

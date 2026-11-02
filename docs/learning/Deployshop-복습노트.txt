@@ -224,7 +224,7 @@ aws eks describe-cluster --name my-cluster --region ap-northeast-2 --profile aws
 
 ServiceAccount의 `eks.amazonaws.com/role-arn`은 그 역할을 참조합니다. 이 흐름이 IRSA입니다. Pod가 사용자의 로컬 AWS 프로필을 읽는 구조가 아닙니다.
 
-수업 정책 AmazonEC2FullAccess, AmazonEKSClusterPolicy, AutoScalingFullAccess에 더해 eks:DescribeNodegroup을 해당 nodegroup ARN에 허용했습니다. 403 해결 내역은 [트러블슈팅](../TROUBLESHOOTING.md)에 있습니다.
+수업 정책 AmazonEC2FullAccess, AmazonEKSClusterPolicy, AutoScalingFullAccess에 더해 eks:DescribeNodegroup을 해당 nodegroup ARN에 허용했습니다. 403 해결 내역은 [문제 분석 및 해결](../TROUBLESHOOTING.md)에 있습니다.
 
 ```powershell
 kubectl apply -f deploy/k8s/platform/cluster-autoscaler/autoscaler.yml
@@ -285,7 +285,7 @@ sum by (app, pod) (jvm_memory_used_bytes{job="spring-apps", area="heap"})
 sum by (app) (rate(http_server_requests_seconds_count{job="spring-apps", uri!~"/health|/actuator.*"}[5m]))
 ```
 
-원본 JSON과 개선한 재사용 사본의 차이는 [대시보드 안내](../dashboards/README.md)에 기록했습니다. CPU 패널은 프로세스 메트릭이며 HPA가 보는 request 대비 사용률과 같다고 해석하지 않습니다. HTTP rate는 5분 구간 평균입니다.
+CPU 패널은 프로세스 메트릭이며 HPA가 보는 request 대비 사용률과 같다고 해석하지 않습니다. HTTP rate는 5분 구간 평균입니다.
 
 ## 12. Grafana EBS 영구 저장소 상세
 
@@ -491,6 +491,6 @@ git status --short
 
 이 명령은 향후 사용자 최종 확인용입니다. 문서 작성 시 다시 실행한 결과로 제시하지 않습니다. 화면별 시점 차이가 있으므로 노드 수·리비전·동기화 상태를 섞지 않습니다.
 
-공개 캡처는 [증거 목록](../EVIDENCE.md), JSON은 [대시보드 폴더](../dashboards/README.md)에 있습니다. 로그인·SNS 메일 2개는 AI 편집한 가림 설명용 사본이며 원본 그대로의 검증 증거가 아닙니다. 나머지 43개는 제공한 파일을 그대로 복사했습니다.
+공개 캡처는 [증거 목록](../EVIDENCE.md)에 있습니다. 로그인·SNS 메일 2개는 AI 편집한 가림 설명용 사본이며 원본 그대로의 검증 증거가 아닙니다. 나머지 43개는 제공한 파일을 그대로 복사했습니다.
 
 이 작업에서 완료한 것은 문서·자료 정리입니다. Git commit/push와 AWS·Kubernetes 재실행은 수행하지 않았습니다. 실습 종료 시에는 RDS 보호·스냅샷, S3 버전 객체, EBS Retain, CloudWatch prevent_destroy와 로컬 state를 고려해 사용자가 보존·정리 범위를 결정합니다.

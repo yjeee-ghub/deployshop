@@ -22,10 +22,9 @@
 | :--- | :--- |
 | [구축 절차](docs/SETUP.md) | 실행 순서, CLI·콘솔 작업, Terraform 관리 범위 |
 | [검증 결과](docs/VALIDATION.md) | 웹·API·DB 대조, 자동 확장·알림 결과와 증거 |
-| [트러블슈팅](docs/TROUBLESHOOTING.md) | Grafana OOM·EBS, 인증서 충돌, IAM·ECR 오류 해결 |
+| [문제 분석 및 해결](docs/TROUBLESHOOTING.md) | Grafana OOM·EBS, 인증서 충돌, IAM·ECR 오류 해결 |
 | [증거 목록](docs/EVIDENCE.md) | 캡처별 설명, 공개용 가림 처리, 검증 시점 구분 |
-| [대시보드 JSON](docs/dashboards/README.md) | 원본 내보내기와 재사용 사본, Import 방법 |
-| [질문 기반 핵심 복습](docs/learning/CORE-REVIEW.md) | ChatGPT·Codex 개인·팀 프로젝트 질문 통합, 개념·오류·면접 핵심 |
+| [핵심 개념 복습](docs/learning/CORE-REVIEW.md) | 개인·팀 프로젝트의 기술 선택 이유와 동작 원리 |
 | [교육·복습 노트](docs/learning/STUDY-NOTES.md) | 단계별 명령·의미·정상 결과·오류 해결 및 EBS 상세 설명 |
 
 ## 01. System Architecture
@@ -105,7 +104,7 @@ flowchart TD
 
 CloudWatch 경보는 **80% 이상인 5분 평균 2회 연속** 조건입니다. 알림 경로는 `set-alarm-state`로 검증했으며, 실제 CPU 80% 초과를 10분 유지한 테스트로 기록하지 않습니다. 앱 컨테이너 로그의 CloudWatch 전송이나 주문 완료 SNS 발송은 이번 구현 범위에 포함하지 않습니다.
 
-## 06. Troubleshooting Highlights
+## 06. 문제 분석 및 해결
 
 | 문제 | 확인한 원인 / 조치 | 검증 |
 | :--- | :--- | :--- |
@@ -114,7 +113,7 @@ CloudWatch 경보는 **80% 이상인 5분 평균 2회 연속** 조건입니다. 
 | Autoscaler 노드그룹 조회 실패 | `eks:DescribeNodegroup` 누락 | 해당 노드그룹 조회 권한 추가 후 확장 실습 성공 |
 | Windows ECR 로그인 400 | PowerShell 파이프 전달 문제로 추정 | 동일 인증을 `cmd /c` 파이프로 실행해 성공 |
 
-상세 원인·명령·권한·검증 근거는 [트러블슈팅 문서](docs/TROUBLESHOOTING.md)에 정리했습니다.
+상세 원인·명령·권한·검증 근거는 [문제 분석 및 해결 문서](docs/TROUBLESHOOTING.md)에 정리했습니다.
 
 ## 07. Repository Structure
 
@@ -140,7 +139,6 @@ yjeee-deployshop/
     ├── TROUBLESHOOTING.md
     ├── EVIDENCE.md
     ├── images/                  # 공개용 캡처 사본
-    ├── dashboards/              # Grafana JSON
     └── learning/                # 교육·복습 노트 MD / TXT
 ```
 
