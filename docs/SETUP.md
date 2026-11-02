@@ -4,8 +4,6 @@
 
 > 인프라 → 클러스터 → 배포 → 관측 → 기능 검증.
 
-[문서 목록](README.md) · [상세 복습](learning/STUDY-NOTES.md) · [실행 결과](VALIDATION.md)
-
 ---
 
 **시작 전** · 계정·도메인·OIDC·서브넷·이미지 주소를 환경에 맞게 변경합니다. `stable/latest` 설치 URL은 버전이 고정되어 있지 않습니다.

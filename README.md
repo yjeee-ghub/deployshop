@@ -27,7 +27,7 @@ Terraform으로 기반 자원을 구성하고 EKS에 서비스를 배포했습�
 
 ## 01. System Architecture
 
-![가로형 요약 아키텍처](docs/images/architecture-overview.png)
+![세로형 시스템 아키텍처](docs/images/architecture-overview.png)
 
 [상세 아키텍처 보기](docs/ARCHITECTURE.md)
 
