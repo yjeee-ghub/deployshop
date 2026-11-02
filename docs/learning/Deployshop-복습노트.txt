@@ -1,8 +1,23 @@
-# Deployshop 구축·검증 복습 노트
+**DEPLOYSHOP · STUDY NOTES**
 
-환경: Windows PowerShell · AWS CLI 프로필 `aws-yjeee` · 리전 `ap-northeast-2`.
+# 구축·검증 복습 노트
 
-[실행 및 검증 결과](../VALIDATION.md).
+> 명령의 목적 → 정상 상태 → 리소스 간 연결.
+
+[문서 목록](../README.md) · [핵심 복습](CORE-REVIEW.md) · [구축 절차](../SETUP.md)
+
+---
+
+**환경** · Windows PowerShell · `aws-yjeee` · `ap-northeast-2`
+
+| 학습 구간 | 주요 내용 |
+| :--- | :--- |
+| **[01–04 인프라 기반](#1-전체-연결-구조)** | 전체 구조·도구·Terraform·EKS Secret |
+| **[05–08 이미지와 배포](#5-dockerecr앱-배포)** | Docker·ECR·Actions·DNS/TLS·Argo CD |
+| **[09–12 확장과 관측](#9-hpa와-metrics-server)** | HPA·IRSA·CA·Prometheus·Grafana EBS |
+| **[13–16 운영 검증](#13-monitoring-인증서-outofsync-수정)** | 인증서 충돌·CloudWatch/SNS·웹/API/DB·최종 점검 |
+
+---
 
 ## 1. 전체 연결 구조
 
@@ -13,6 +28,8 @@
 - 관측: Prometheus 메트릭 수집·Grafana 시각화, CloudWatch 제어 영역 로그·EC2 CPU 경보·SNS 알림.
 
 Actions 직접 배포와 Argo CD 병행. 이미지 SHA를 Git manifest에 반영하는 GitOps 파이프라인은 미구현.
+
+---
 
 ## 2. 사전 도구·AWS 프로필
 
@@ -33,6 +50,8 @@ aws sts get-caller-identity --profile aws-yjeee
 
 Backend 빌드: JDK 17. 로컬 빌드와 Docker builder stage의 실행 환경 구분.
 
+---
+
 ## 3. Terraform 최초 적용
 
 ```powershell
@@ -47,18 +66,20 @@ terraform output
 
 | 명령 | 의미 | 확인할 정상 결과 |
 |---|---|---|
-| init | provider·module 준비 | 초기화 완료 |
-| fmt -check -recursive | 하위 폴더까지 포맷 확인 | 수정이 필요한 파일이 없는 상태 |
-| validate | 구문과 구성 정합성 확인 | configuration valid |
-| plan | 현재 state와 선언의 차이 확인 | 의도한 생성·변경만 포함 |
-| apply | 승인한 인프라 변경 실행 | Apply complete |
-| output | 모듈이 외부로 내보낸 값 확인 | cluster·RDS·ECR·S3 정보 |
+| **init** | provider·module 준비 | 초기화 완료 |
+| **fmt -check -recursive** | 하위 폴더까지 포맷 확인 | 수정이 필요한 파일이 없는 상태 |
+| **validate** | 구문과 구성 정합성 확인 | configuration valid |
+| **plan** | 현재 state와 선언의 차이 확인 | 의도한 생성·변경만 포함 |
+| **apply** | 승인한 인프라 변경 실행 | Apply complete |
+| **output** | 모듈이 외부로 내보낸 값 확인 | cluster·RDS·ECR·S3 정보 |
 
 `plan` 성공 후에도 실제 생성 과정의 권한·용량·네트워크 오류 가능. `apply` 결과·콘솔 상태 대조 필요.
 
-Root module → network·iam·eks·rds·ecr·s3 Child module 연결. CloudWatch/SNS는 root `monitoring.tf`에서 관리. Local State는 실제 자원과 코드의 연결 정보이며, 삭제 시 관리 정보 손실.
+- **모듈:** Root → network·iam·eks·rds·ecr·s3 연결.
+- **관측 설정:** root `monitoring.tf`에서 CloudWatch/SNS 관리.
+- **Local State:** 코드와 실제 자원의 연결 정보. 삭제 시 관리 정보 손실.
 
-`terraform.tfvars`·`*.tfstate*`·`.terraform`·credential 파일은 Git 추적 제외. `sensitive = true`는 일반 출력 가림이며 State 암호화와 별개.
+> **핵심** · `terraform.tfvars`·`*.tfstate*`·`.terraform`·credential 파일은 Git 추적 제외. `sensitive = true`는 일반 출력 가림이며 State 암호화와 별개.
 
 ### 네트워크와 데이터 저장소
 
@@ -69,6 +90,8 @@ Root module → network·iam·eks·rds·ecr·s3 Child module 연결. CloudWatch/
 - Workbench 접속은 외부 PC 공인 IP/32와 EKS 측 보안 그룹 규칙으로 구분.
 
 `workbench_allowed_cidr`: 임시 전체 허용 → 최종 PC `/32` 적용·재접속 확인. PC 공인 IP 변경 시 CIDR 갱신 필요.
+
+---
 
 ## 4. EKS 접속과 Secret
 
@@ -86,8 +109,8 @@ kubectl create namespace soldesk
 
 | Secret | 키 | 소비 목적 |
 |---|---|---|
-| my-app-secrets | DB_HOST, DB_PW | RDS 연결 |
-| aws-secret | AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY | 상품 이미지 S3 업로드 |
+| **my-app-secrets** | DB_HOST, DB_PW | RDS 연결 |
+| **aws-secret** | AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY | 상품 이미지 S3 업로드 |
 
 로컬 환경 변수로 Secret 생성:
 
@@ -100,6 +123,8 @@ kubectl get secrets -n soldesk
 최초 생성 전 환경 변수 값 확인. 기존 Secret은 별도 갱신 필요. Secret YAML은 Git 추적 제외. base64 인코딩은 암호화와 별개.
 
 상품 이미지 전용 IAM 키는 Terraform sensitive 출력으로 전달. 계정 관리용 키와 분리. `products/` Put/Get·필요한 ListBucket 권한 적용, 공개 읽기는 상품 객체 GetObject로 제한.
+
+---
 
 ## 5. Docker·ECR·앱 배포
 
@@ -125,9 +150,16 @@ kubectl get deployment,pod,service -n soldesk
 kubectl describe pod -n soldesk <Pod이름>
 ```
 
-Deployment는 원하는 Pod 상태를 유지하고 Service는 Pod 변경과 무관한 내부 주소를 제공. `Running`만 보지 말고 READY 1/1과 restart 횟수, Events도 확인. `/health` probe는 프로세스 상태 확인 용도이며 실제 구매 기능 전체의 성공을 보장하지 않음.
+| 대상 | 역할·확인 기준 |
+| :--- | :--- |
+| **Deployment** | 원하는 Pod 상태 유지 |
+| **Service** | Pod 교체와 무관한 내부 접속 주소 |
+| **Pod** | `READY 1/1`·restart 횟수·Events 확인 |
+| **`/health` probe** | 프로세스 상태 확인·구매 기능 검증은 별도 |
 
-backend CPU request 0.5, limit 1은 각각 스케줄링 기준과 사용 상한. HPA의 CPU 사용률 계산은 request를 기준으로 하므로 200%는 노드 CPU 전체 200%가 아니라 0.5 CPU의 두 배 사용을 의미.
+> **핵심** · backend CPU request 0.5, limit 1은 각각 스케줄링 기준과 사용 상한. HPA의 CPU 사용률 계산은 request를 기준으로 하므로 200%는 노드 CPU 전체 200%가 아니라 0.5 CPU의 두 배 사용을 의미.
+
+---
 
 ## 6. GitHub Actions와 Git 초기 연결
 
@@ -142,6 +174,8 @@ git branch -vv
 Actions Secrets `AWS_KEY`·`AWS_SECRET`: AWS 인증용. EKS Access Entry·접근 정책으로 클러스터 권한 연결. AWS 인증과 Kubernetes 권한은 각각 확인.
 
 Actions Workflow 성공 확인. Node 런타임·runner 전환 안내는 의존성 업데이트 시 확인.
+
+---
 
 ## 7. NLB·Ingress·DNS·TLS
 
@@ -161,6 +195,8 @@ NGINX LoadBalancer Service → NLB 연결. Route 53의 server·argo·prometheus�
 `/`는 frontend, 서비스 접두 경로는 API Gateway로 전달됨. Gateway가 StripPrefix로 접두 경로를 제거해 backend로 라우팅. 경로가 어디서 변경되는지 확인하면 404의 발생 위치를 구분하는 데 도움이 됨.
 
 cert-manager의 ClusterIssuer `my-issuer`는 Let's Encrypt HTTP-01을 사용. namespace별 Certificate가 TLS Secret을 만들고 Ingress가 참조. 인증서 Ready=True, 실제 HTTPS 접속, 브라우저의 호스트 일치를 함께 확인.
+
+---
 
 ## 8. Argo CD와 self-heal
 
@@ -188,7 +224,12 @@ kubectl scale deployment frontend-depl --replicas=2 -n soldesk
 kubectl get deployment frontend-depl -n soldesk -w
 ```
 
-Frontend 수동 replicas `2 → 1` self-heal 확인. `-w`로 변경 관찰, Ctrl+C로 종료. Backend는 HPA와 Argo CD의 replicas 제어 충돌 발생 → `/spec/replicas` 제외·`RespectIgnoreDifferences=true` 적용. HPA 미사용 Frontend는 Git 고정값 유지.
+- **Frontend:** 수동 replicas `2 → 1` self-heal 확인. `-w` 관찰·Ctrl+C 종료.
+- **Backend:** HPA·Argo CD 제어 충돌 → `/spec/replicas` 제외·`RespectIgnoreDifferences=true` 적용.
+
+> **핵심** · Backend Pod 수는 HPA, Frontend 고정값은 Git이 관리.
+
+---
 
 ## 9. HPA와 Metrics Server
 
@@ -200,9 +241,16 @@ kubectl apply -f deploy/k8s/platform/hpa
 kubectl get hpa -n soldesk
 ```
 
-Metrics Server는 HPA와 kubectl top에 필요한 리소스 메트릭을 제공. Prometheus와 역할이 다름. HPA는 member/product/ordering 목표 CPU 30%, gateway 70%, min 1 max 5.
+| 구성 | 기준 |
+| :--- | :--- |
+| **Metrics Server** | HPA·`kubectl top`의 리소스 메트릭 제공 |
+| **Member·Product·Ordering HPA** | CPU 30% |
+| **Gateway HPA** | CPU 70% |
+| **Pod 수** | min 1 / max 5 |
 
 `TARGETS: unknown` 지속 시 Metrics Server·Pod request 확인. 새 Pod는 수집 대기 가능. 확장 후 노드 공간 부족 시 Pending 발생 가능.
+
+---
 
 ## 10. OIDC·IRSA·Cluster Autoscaler
 
@@ -218,9 +266,16 @@ OIDC issuer ID는 클러스터 식별자. 재생성 후 새 값으로 갱신.
 aws eks describe-cluster --name my-cluster --region ap-northeast-2 --profile aws-yjeee --query cluster.identity.oidc.issuer --output text
 ```
 
-콘솔 IAM → 자격 증명 공급자 → OpenID Connect에서 issuer URL과 audience `sts.amazonaws.com`을 등록. `autoscaling-pod-role`의 trust는 해당 OIDC 공급자, aud=sts.amazonaws.com, sub=system:serviceaccount:kube-system:cluster-autoscaler를 사용.
+IAM → 자격 증명 공급자 → OpenID Connect 등록.
 
-ServiceAccount의 `eks.amazonaws.com/role-arn` → IAM Role 연결. OIDC 토큰으로 임시 자격 증명을 받는 IRSA 방식. 로컬 AWS 프로필과 별개.
+| Trust 조건 | 값 |
+| :--- | :--- |
+| **Role** | `autoscaling-pod-role` |
+| **Provider** | 해당 EKS OIDC issuer |
+| **audience** | `sts.amazonaws.com` |
+| **subject** | `system:serviceaccount:kube-system:cluster-autoscaler` |
+
+> **핵심** · ServiceAccount의 `eks.amazonaws.com/role-arn` → IAM Role 연결. OIDC 토큰으로 임시 자격 증명을 받는 IRSA 방식. 로컬 AWS 프로필과 별개.
 
 CA 역할에는 수업 정책 AmazonEC2FullAccess, AmazonEKSClusterPolicy, AutoScalingFullAccess를 연결.
 
@@ -254,11 +309,17 @@ kubectl delete pod product-load -n soldesk
 kubectl get hpa product-hpa -n soldesk -w
 ```
 
-부하 제거 → CPU 감소 → 안정화 대기 → replicas `5→1`. 노드 축소는 HPA와 별도 동작·확인.
+> **핵심** · 부하 제거 → CPU 감소 → 안정화 대기 → replicas `5→1`. 노드 축소는 HPA와 별도 동작·확인.
+
+---
 
 ## 11. Prometheus·Grafana
 
-monitoring namespace의 Prometheus는 node-exporter와 spring-apps를 수집. node-exporter는 DaemonSet으로 노드마다 실행하고 hostNetwork 9100을 사용. 앱은 soldesk의 annotation 기반 발견으로 8080 `/actuator/prometheus`를 수집.
+| 수집 대상 | 수집 경로 |
+| :--- | :--- |
+| **노드** | node-exporter DaemonSet·hostNetwork 9100 |
+| **앱** | soldesk annotation 기반 발견·8080 `/actuator/prometheus` |
+| **Prometheus** | monitoring namespace에서 두 job 수집 |
 
 ```powershell
 kubectl get pods,svc -n monitoring
@@ -275,7 +336,9 @@ up{job="spring-apps"}
 
 각 job의 시계열 4개 모두 `up=1`: 메트릭 수집 성공.
 
-Grafana 초기 admin/admin 로그인 후 비밀번호를 변경. 데이터 소스 URL은 `http://prometheus-service.monitoring.svc.cluster.local:9090`. Node Exporter Full(1860)과 앱 수집 상태·CPU·JVM heap·HTTP 요청 수 패널을 구성.
+1. 초기 `admin/admin` 로그인 → 비밀번호 변경.
+2. Prometheus 데이터 소스 연결: `http://prometheus-service.monitoring.svc.cluster.local:9090`.
+3. Node Exporter Full(1860)·앱 수집 상태·CPU·JVM Heap·HTTP 요청 패널 구성.
 
 ```promql
 process_cpu_usage{job="spring-apps"} * 100
@@ -283,7 +346,9 @@ sum by (app, pod) (jvm_memory_used_bytes{job="spring-apps", area="heap"})
 sum by (app) (rate(http_server_requests_seconds_count{job="spring-apps", uri!~"/health|/actuator.*"}[5m]))
 ```
 
-CPU 패널은 프로세스 메트릭이며 HPA가 보는 request 대비 사용률과 같다고 해석하지 않음. HTTP rate는 5분 구간 평균.
+> **핵심** · CPU 패널은 프로세스 메트릭이며 HPA가 보는 request 대비 사용률과 같다고 해석하지 않음. HTTP rate는 5분 구간 평균.
+
+---
 
 ## 12. Grafana EBS 영구 저장소 상세
 
@@ -291,7 +356,7 @@ CPU 패널은 프로세스 메트릭이며 HPA가 보는 request 대비 사용�
 
 Grafana OOMKilled(137) 발생 → limit 500Mi→1Gi·request 512Mi 조정. 설정 소실 → `/var/lib/grafana`에 EBS PVC 연결. 메모리·저장소 문제 각각 조치.
 
-메모리: 실행 중 데이터 처리. EBS: 파일 영구 저장. 메모리 증설만으로 Pod 교체 후 설정 보존 불가.
+> **핵심** · 메모리: 실행 중 데이터 처리. EBS: 파일 영구 저장. 메모리 증설만으로 Pod 교체 후 설정 보존 불가.
 
 ### 12-2. EBS CSI용 IAM 역할 만들기
 
@@ -342,17 +407,17 @@ ebs-csi-controller 2/2·ebs-csi-node DaemonSet 정상 확인. DaemonSet 수는 �
 
 | 설정 | 의미 |
 |---|---|
-| provisioner: ebs.csi.aws.com | EBS CSI 드라이버로 동적 볼륨 생성 |
-| type: gp3 | EBS gp3 볼륨 사용 |
-| encrypted: true | 저장 시 암호화 활성화 |
-| fstype: ext4 | 파일 시스템 |
-| WaitForFirstConsumer | Pod의 배치 위치를 보고 적절한 AZ에 볼륨 생성 |
-| allowVolumeExpansion: true | PVC 확장 허용 설정; 실제 변경 후 확인 필요 |
-| reclaimPolicy: Retain | PVC 삭제 뒤 PV/EBS를 자동 폐기하지 않음 |
-| PVC 5Gi / ReadWriteOnce | 단일 노드에서 read/write로 마운트하는 사용 방식 |
-| Prune=false,Delete=false | Argo CD prune·Application 삭제에서 PVC 보호 |
+| **provisioner: ebs.csi.aws.com** | EBS CSI 드라이버로 동적 볼륨 생성 |
+| **type: gp3** | EBS gp3 볼륨 사용 |
+| **encrypted: true** | 저장 시 암호화 활성화 |
+| **fstype: ext4** | 파일 시스템 |
+| **WaitForFirstConsumer** | Pod의 배치 위치를 보고 적절한 AZ에 볼륨 생성 |
+| **allowVolumeExpansion: true** | PVC 확장 허용 설정; 실제 변경 후 확인 필요 |
+| **reclaimPolicy: Retain** | PVC 삭제 뒤 PV/EBS를 자동 폐기하지 않음 |
+| **PVC 5Gi / ReadWriteOnce** | 단일 노드에서 read/write로 마운트하는 사용 방식 |
+| **Prune=false,Delete=false** | Argo CD prune·Application 삭제에서 PVC 보호 |
 
-ReadWriteOnce: 한 노드 기준 읽기·쓰기 모드. Pod 1개 제한과 구분. Grafana replica 1·Recreate로 동시 볼륨 연결 충돌 방지. EBS는 생성된 AZ 안에서 연결 가능.
+> **핵심** · ReadWriteOnce: 한 노드 기준 읽기·쓰기 모드. Pod 1개 제한과 구분. Grafana replica 1·Recreate로 동시 볼륨 연결 충돌 방지. EBS는 생성된 AZ 안에서 연결 가능.
 
 ### 12-5. Grafana Deployment 연결
 
@@ -374,7 +439,11 @@ volumes:
       claimName: grafana-data
 ```
 
-Deployment 설정 일부. 실제 파일: `grafana-depl_svc.yml`. fsGroup으로 쓰기 권한 설정, OnRootMismatch로 소유권 변경 범위 조절. Recreate는 기존 Pod 종료 후 생성하므로 재배포 중 중단 가능.
+Deployment 설정 일부 · 실제 파일: `grafana-depl_svc.yml`.
+
+- **fsGroup:** 데이터 경로 쓰기 권한.
+- **OnRootMismatch:** 소유권 변경 범위 조절.
+- **Recreate:** 기존 Pod 종료 후 생성, 재배포 중 중단 가능.
 
 ### 12-6. Argo CD에 최신 파일 반영
 
@@ -402,13 +471,17 @@ kubectl get pvc grafana-data -n monitoring
 
 재시작 후 변경한 계정으로 로그인되고 Prometheus 데이터 소스와 대시보드가 남아 있는지 확인.
 
-Retain·PVC 보호: 자동 삭제 방지. 백업·AZ 장애 복구와 별개. 종료 시 남은 EBS·비용 확인. Prometheus 영구 볼륨은 미적용.
+> **핵심** · Retain·PVC 보호: 자동 삭제 방지. 백업·AZ 장애 복구와 별개. 종료 시 남은 EBS·비용 확인. Prometheus 영구 볼륨은 미적용.
+
+---
 
 ## 13. monitoring 인증서 OutOfSync 수정
 
 Git Certificate와 Ingress annotation이 같은 인증서를 중복 관리. duration·renewBefore 차이 반복 발생.
 
 최종 변경은 monitoring Ingress의 cert-manager.io/cluster-issuer annotation 제거 한 줄. 명시적 Certificate, issuerRef, TLS secret 참조는 유지. 반영 후 Synced/Healthy·HTTPS 정상 확인. `ArgoCD.png`는 이 수정 전 화면.
+
+---
 
 ## 14. CloudWatch·SNS
 
@@ -420,15 +493,15 @@ CPU alarm은 다음 조건.
 
 | 항목 | 값 |
 |---|---|
-| 이름 | my-cluster-node-group-cpu-high |
-| namespace / metric | AWS/EC2 / CPUUtilization |
-| dimension | 해당 노드 그룹의 AutoScalingGroupName |
-| statistic | Average |
-| period | 300초 |
-| evaluation / datapoints | 2 / 2 |
-| threshold | 80 이상 |
-| missing | missing |
-| action | ALARM 및 OK에서 SNS |
+| **이름** | my-cluster-node-group-cpu-high |
+| **namespace / metric** | AWS/EC2 / CPUUtilization |
+| **dimension** | 해당 노드 그룹의 AutoScalingGroupName |
+| **statistic** | Average |
+| **period** | 300초 |
+| **evaluation / datapoints** | 2 / 2 |
+| **threshold** | 80 이상 |
+| **missing** | missing |
+| **action** | ALARM 및 OK에서 SNS |
 
 수동 알림 경로 테스트:
 
@@ -436,9 +509,11 @@ CPU alarm은 다음 조건.
 aws cloudwatch set-alarm-state --alarm-name my-cluster-node-group-cpu-high --state-value ALARM --state-reason "Manual notification path test for Deployshop" --region ap-northeast-2 --profile aws-yjeee
 ```
 
-수동 ALARM 전환 → SNS → 이메일 수신 확인. 이후 지표 재평가로 OK 복귀. 실제 CPU 임계값 초과는 미검증.
+> **핵심** · 수동 ALARM 전환 → SNS → 이메일 수신 확인. 이후 지표 재평가로 OK 복귀. 실제 CPU 임계값 초과는 미검증.
 
 `order_notifications.tf`: 선택적 인프라 정의. 애플리케이션 주문 이벤트·SNS 연동은 미구현.
+
+---
 
 ## 15. 웹·Postman·Workbench 검증
 
@@ -470,11 +545,20 @@ WHERE product_id = @product_id
 ORDER BY id;
 ```
 
-관찰값: product.stock_quantity=7, 주문 ID 3 quantity1 및 ID4 quantity2, member_id=2/product_id=2, 두 건 ORDERED. SQL에서 필드명이 API JSON과 다를 수 있으므로 snake_case를 사용.
+| DB 확인 항목 | 결과 |
+| :--- | :--- |
+| **상품 / 회원** | `product_id=2` / `member_id=2` |
+| **재고** | `stock_quantity=7` |
+| **주문 ID 3** | quantity 1·ORDERED |
+| **주문 ID 4** | quantity 2·ORDERED |
+
+SQL 필드는 snake_case, API JSON과 이름 구분.
 
 같은 상품에 productCount=8을 요청해 400과 `재고 부족` 확인. 재조회 시 재고 7과 기존 두 주문만 유지. API 응답·DB·웹을 대조한 순차 검증. 동시성 부하에서의 재고 원자성, 결제, 분산 트랜잭션 검증은 포함하지 않음.
 
 Workbench Error1046은 DB 미선택이 원인이었고 USE ordermsa 실행 후 해결. 접속 실패와 SQL 실행 실패를 구분.
+
+---
 
 ## 16. 최종 확인
 
@@ -487,4 +571,4 @@ kubectl get certificate -A
 git status --short
 ```
 
-종료 전 확인: RDS 삭제 보호·최종 스냅샷, S3 버전 객체, EBS Retain, CloudWatch prevent_destroy, 로컬 Terraform state.
+> **핵심** · 종료 전 확인: RDS 삭제 보호·최종 스냅샷, S3 버전 객체, EBS Retain, CloudWatch prevent_destroy, 로컬 Terraform state.

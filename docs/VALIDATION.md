@@ -1,21 +1,30 @@
+**DEPLOYSHOP · VALIDATION**
+
 # 실행 및 검증 결과
+
+> 실행 내용 → 강조 캡처 → 확인 포인트 → 결과.
+
+
+---
 
 | 사례 | 검증 흐름 |
 |---|---|
-| 01. 이미지 빌드·배포 | 인증값 준비 → Workflow 실행 → 작업 성공 |
-| 02. Git 선언 상태 복구 | replicas 수동 변경 → Git 값으로 복귀 |
-| 03. 자동 확장·축소 | 부하 생성 → Pod·노드 확장 → 부하 제거 → Pod 축소 |
-| 04. 웹·API·DB 대조 | 초기 상태 → 주문 → 재고·주문 저장 → 초과 주문 거절 |
-| 05. 메트릭 수집·시각화 | Targets UP → up 쿼리 → Grafana 패널 |
-| 06. Grafana 문제 해결 | OOM 진단 → 메모리·저장소 조정 → 보존 재확인 |
-| 07. 경보·로그·알림 | 경보 설정 → 수동 상태 전환 → 메일·이력 확인 |
-| 08. DB 접근 범위 제한 | PC /32 적용 → 보안 그룹 확인 → DB 재조회 |
+| **01. 이미지 빌드·배포** | 인증값 준비 → Workflow 실행 → 작업 성공 |
+| **02. Git 선언 상태 복구** | replicas 수동 변경 → Git 값으로 복귀 |
+| **03. 자동 확장·축소** | 부하 생성 → Pod·노드 확장 → 부하 제거 → Pod 축소 |
+| **04. 웹·API·DB 대조** | 초기 상태 → 주문 → 재고·주문 저장 → 초과 주문 거절 |
+| **05. 메트릭 수집·시각화** | Targets UP → up 쿼리 → Grafana 패널 |
+| **06. Grafana 문제 해결** | OOM 진단 → 메모리·저장소 조정 → 보존 재확인 |
+| **07. 경보·로그·알림** | 경보 설정 → 수동 상태 전환 → 메일·이력 확인 |
+| **08. DB 접근 범위 제한** | PC /32 적용 → 보안 그룹 확인 → DB 재조회 |
+
+---
 
 ## 01. 이미지 빌드·배포
 
 ### AWS 인증값 준비와 Workflow 성공
 
-**실행·확인 내용**
+**실행**
 
 Actions에 AWS 인증값을 등록하고, 변경 서비스의 이미지 빌드·ECR push·Kubernetes 배포를 수행하는 Workflow를 실행. 대상 커밋: `2c7c12f`.
 
@@ -23,18 +32,20 @@ Actions에 AWS 인증값을 등록하고, 변경 서비스의 이미지 빌드·
 
 ![검증 캡처 34 — github2.png](images/annotated/evidence-34.png)
 
-**캡처 확인 포인트**
+**확인 포인트**
 
 - 인증값 등록 화면에서 `AWS_KEY`·`AWS_SECRET`의 존재 확인.
 - Workflow의 `Status: Success`와 `build-and-deploy` 작업의 성공 표시 확인.
 
-**검증 결과:** Workflow 성공. 주문·DB 대조 결과는 04번에 정리.
+> **결과** · Workflow 성공. 주문·DB 대조 결과는 04번에 정리.
+
+---
 
 ## 02. Git 선언 상태 복구
 
 ### 수동 변경 후 Frontend replicas 복귀
 
-**실행·확인 내용**
+**실행**
 
 Frontend의 Pod 수를 수동으로 2개로 바꾸고 Deployment 변화를 관찰.
 
@@ -42,33 +53,37 @@ Frontend의 Pod 수를 수동으로 2개로 바꾸고 Deployment 변화를 관�
 
 ![검증 캡처 02 — ArgoCD replicas 복구 실습2.png](images/annotated/evidence-02.png)
 
-**캡처 확인 포인트**
+**확인 포인트**
 
 - 수동 scale 명령의 `--replicas=2`와 `scaled` 응답 확인.
 - watch 출력과 최종 Deployment 조회에서 `READY 1/1`로 복귀한 값 확인.
 
-**검증 결과:** 수동 변경한 Pod 수가 Git에 선언된 1개로 복구됨.
+> **결과** · 수동 변경한 Pod 수가 Git에 선언된 1개로 복구됨.
+
+---
 
 ### Argo CD 중간 상태 구분
 
-**실행·확인 내용**
+**실행**
 
 Application 화면에서 앱별 상태 확인. 이 캡처는 monitoring 인증서 충돌 해결 전 시점.
 
 ![검증 캡처 03 — ArgoCD.png](images/annotated/evidence-03.png)
 
-**캡처 확인 포인트**
+**확인 포인트**
 
 - `msa-monitoring`은 `Healthy`이면서 `OutOfSync`.
 - 인증서 충돌 해결 전 중간 상태.
 
-**검증 결과:** Healthy와 OutOfSync 동시 확인. 인증서 수정 후 정상화.
+> **결과** · Healthy와 OutOfSync 동시 확인. 인증서 수정 후 정상화.
+
+---
 
 ## 03. 부하에 따른 Pod·노드 확장과 Pod 축소
 
 ### CA 권한 준비와 부하에 따른 확장
 
-**실행·확인 내용**
+**실행**
 
 CA가 노드 용량을 조절하도록 역할을 연결하고, `http://product-service/product/list`를 반복 조회하는 BusyBox 부하 루프 8개를 실행. Product HPA는 CPU 목표 30%, 최소 1·최대 5개.
 
@@ -76,47 +91,54 @@ CA가 노드 용량을 조절하도록 역할을 연결하고, `http://product-s
 
 ![검증 캡처 05 — HPA 확장_부하테스트1.png](images/annotated/evidence-05.png)
 
-**캡처 확인 포인트**
+**확인 포인트**
 
 - 역할 화면의 `autoscaling-pod-role`과 실습 당시 연결한 정책 확인.
 - HPA의 `REPLICAS`가 `1 → 2 → 4 → 5`로 증가하는 부분 확인.
 - 상품 Pod 5개의 배치와 Ready 노드 3개 확인.
 
-**검증 결과:** 노드 2→3 확장, 상품 Pod 5개 Running 확인.
+> **결과** · 노드 2→3 확장, 상품 Pod 5개 Running 확인.
+
+---
 
 ### 부하 제거 후 Pod 자동 축소
 
-**실행·확인 내용**
+**실행**
 
 상품 조회 부하를 발생시키던 `product-load` Pod를 삭제하고 HPA 변화를 관찰.
 
 ![검증 캡처 06 — HPA 확장_부하테스트2.png](images/annotated/evidence-06.png)
 
-**캡처 확인 포인트**
+**확인 포인트**
 
 - 부하 Pod 삭제 명령과 삭제 완료 응답 확인.
 - CPU 사용률이 `40% → 32% → 5% → 0%`로 감소.
 - `REPLICAS`가 `5 → 1`로 감소.
 
-**검증 결과:** 부하 종료 후 상품 Pod 5→1 축소 확인. 노드 축소는 별도 확인 항목.
+> **결과** · 부하 종료 후 상품 Pod 5→1 축소 확인. 노드 축소는 별도 확인 항목.
+
+---
 
 ## 04. 웹·API 주문과 DB 결과 대조
 
 **검증 기준:** **상품 ID 2·회원 ID 2**의 주문·재고 대조. 상품 ID 1은 초기 기능 확인용.
 
+---
+
 ### 주문 전후 비교 기준
 
 | 순서 | 동작 | HTTP / 화면 | 재고 | 해당 상품 주문 |
 |---|---|---|---:|---|
-| 1 | 신규 상품 등록 | 상품·이미지 표시 | 10 | 없음 |
-| 2 | 웹 구매 1회 | 주문 완료 알림 | 9 | ID 3, quantity 1, ORDERED |
-| 3 | API 구매 수량 2 | 201, 본문 4 | 7 | ID 4 추가, quantity 2 |
-| 4 | API 구매 수량 8 | 400, 재고 부족 | 7 | ID 3·4 유지 |
+| **1** | 신규 상품 등록 | 상품·이미지 표시 | 10 | 없음 |
+| **2** | 웹 구매 1회 | 주문 완료 알림 | 9 | ID 3, quantity 1, ORDERED |
+| **3** | API 구매 수량 2 | 201, 본문 4 | 7 | ID 4 추가, quantity 2 |
+| **4** | API 구매 수량 8 | 400, 재고 부족 | 7 | ID 3·4 유지 |
 
+---
 
 ### 웹 로그인과 로그인 응답
 
-**실행·확인 내용**
+**실행**
 
 브라우저에서 로그인하고 API 로그인 응답도 확인.
 
@@ -124,16 +146,18 @@ CA가 노드 용량을 조절하도록 역할을 연결하고, `http://product-s
 
 ![검증 캡처 17 — Postman_Workbench_test5.png](images/annotated/evidence-17.png)
 
-**캡처 확인 포인트**
+**확인 포인트**
 
 - 웹 화면의 로그인 성공 안내 확인.
 - 두 번째 이미지: 로그인 응답 설명용 가림 사본.
 
-**검증 결과:** 웹 로그인 성공.
+> **결과** · 웹 로그인 성공.
+
+---
 
 ### 상품 이미지와 초기 상품 ID 1의 구매
 
-**실행·확인 내용**
+**실행**
 
 상품 이미지의 S3 저장과 웹 표시를 확인하고, 초기 상품 ID 1을 웹에서 구매.
 
@@ -145,17 +169,19 @@ CA가 노드 용량을 조절하도록 역할을 연결하고, `http://product-s
 
 ![검증 캡처 42 — shop_imag2_1.png](images/annotated/evidence-42.png)
 
-**캡처 확인 포인트**
+**확인 포인트**
 
 - S3의 `products/` 경로와 이미지 객체 확인.
 - 상품 ID 1의 구매 전 재고 9, 주문 완료 안내, 이후 상세 재고 8 확인.
 - 이 초기 상품은 아래 최종 검증 상품 ID 2와 구분.
 
-**검증 결과:** 상품 이미지 저장·표시와 초기 웹 구매 확인.
+> **결과** · 상품 이미지 저장·표시와 초기 웹 구매 확인.
+
+---
 
 ### 최종 검증 상품 ID 2의 초기 상태
 
-**실행·확인 내용**
+**실행**
 
 최종 검증용 상품을 재고 10개로 준비하고 웹과 DB에서 같은 상품 확인.
 
@@ -163,12 +189,12 @@ CA가 노드 용량을 조절하도록 역할을 연결하고, `http://product-s
 
 ![검증 캡처 08 — Postman_Workbench_test1.png](images/annotated/evidence-08.png)
 
-**캡처 확인 포인트**
+**확인 포인트**
 
 - 웹의 `최종 검증 상품`과 재고 10 확인.
 - DB 조회 조건 `product_id=2`와 결과 행의 `stock_quantity=10` 확인.
 
-**검증 결과:** 웹·DB 초기 재고 10 일치 확인.
+> **결과** · 웹·DB 초기 재고 10 일치 확인.
 
 **DB 대조에 사용한 읽기 조회**
 
@@ -181,9 +207,11 @@ SELECT id, member_id, product_id, quantity, order_status
 FROM ordering WHERE product_id = @product_id ORDER BY id;
 ```
 
+---
+
 ### 웹에서 1개 구매 후 DB·API 대조
 
-**실행·확인 내용**
+**실행**
 
 상품 ID 2를 웹에서 1개 구매한 뒤, DB와 상품 API를 다시 조회.
 
@@ -195,17 +223,19 @@ FROM ordering WHERE product_id = @product_id ORDER BY id;
 
 ![검증 캡처 18 — Postman_Workbench_test6.png](images/annotated/evidence-18.png)
 
-**캡처 확인 포인트**
+**확인 포인트**
 
 - 웹 URL의 상품 ID 2와 주문 완료 안내 확인. 구매 후 재고는 아래 재조회 결과로 확인.
 - DB 재고 9와 주문 ID 3·수량 1·ORDERED 확인.
 - 상품 API 재조회 응답의 `stockQuantity: 9` 확인.
 
-**검증 결과:** 웹 구매 1개 후 재고가 10→9로 감소하고 주문 1건이 저장됨.
+> **결과** · 웹 구매 1개 후 재고가 10→9로 감소하고 주문 1건이 저장됨.
+
+---
 
 ### API로 2개 주문 후 재고·주문 대조
 
-**실행·확인 내용**
+**실행**
 
 같은 상품 ID 2에 수량 2로 주문 API를 호출하고 DB·웹을 재조회.
 
@@ -217,17 +247,19 @@ FROM ordering WHERE product_id = @product_id ORDER BY id;
 
 ![검증 캡처 09 — Postman_Workbench_test10.png](images/annotated/evidence-09.png)
 
-**캡처 확인 포인트**
+**확인 포인트**
 
 - 요청의 `productId: 2`, `productCount: 2`와 응답 `201 Created`, 주문 ID 4 확인.
 - DB 재고 7과 주문 ID 3·4의 수량 1·2 확인.
 - 웹 재조회에서도 같은 상품 재고 7 확인.
 
-**검증 결과:** 웹 1개 + API 2개 구매 결과 재고 10→9→7, 주문 2건을 대조.
+> **결과** · 웹 1개 + API 2개 구매 결과 재고 10→9→7, 주문 2건을 대조.
+
+---
 
 ### 초과 주문 거절 후 기존 데이터 유지
 
-**실행·확인 내용**
+**실행**
 
 남은 재고 7개에 수량 8로 주문하고 DB와 웹을 다시 조회.
 
@@ -239,19 +271,21 @@ FROM ordering WHERE product_id = @product_id ORDER BY id;
 
 ![검증 캡처 13 — Postman_Workbench_test11_3.png](images/annotated/evidence-13.png)
 
-**캡처 확인 포인트**
+**확인 포인트**
 
 - `productCount: 8` 요청과 `400 Bad Request`·`재고 부족` 응답 확인.
 - DB 재고 7과 기존 주문 ID 3·4만 유지된 결과 확인.
 - 웹의 같은 상품 재고도 7.
 
-**검증 결과:** 초과 주문은 거절됐고 기존 재고·주문은 유지됨. 동시 주문·결제는 미검증.
+> **결과** · 초과 주문은 거절됐고 기존 재고·주문은 유지됨. 동시 주문·결제는 미검증.
+
+---
 
 ## 05. 메트릭 수집과 시각화
 
 ### 노드·앱 수집 상태 확인
 
-**실행·확인 내용**
+**실행**
 
 Node Exporter와 앱 Actuator의 수집 경로를 연결하고 Prometheus Targets와 up 쿼리 확인.
 
@@ -261,16 +295,18 @@ Node Exporter와 앱 Actuator의 수집 경로를 연결하고 Prometheus Target
 
 ![검증 캡처 40 — prometheus_web검증3.png](images/annotated/evidence-40.png)
 
-**캡처 확인 포인트**
+**확인 포인트**
 
 - Targets의 `node-exporter 4/4 UP`, `spring-apps 4/4 UP` 확인.
 - 각 job을 조건으로 조회한 결과 시계열의 값이 모두 1인지 확인.
 
-**검증 결과:** 노드·앱 Targets UP, 메트릭 수집 성공.
+> **결과** · 노드·앱 Targets UP, 메트릭 수집 성공.
+
+---
 
 ### 수집한 메트릭을 Grafana에 표시
 
-**실행·확인 내용**
+**실행**
 
 Prometheus를 데이터 소스로 연결하고 노드·앱 대시보드 확인.
 
@@ -278,38 +314,46 @@ Prometheus를 데이터 소스로 연결하고 노드·앱 대시보드 확인.
 
 ![검증 캡처 37 — grafana검증2.png](images/annotated/evidence-37.png)
 
-**캡처 확인 포인트**
+**확인 포인트**
 
 - 노드 CPU·메모리·네트워크·디스크 패널 확인.
 - 앱 수집 상태·프로세스 CPU·JVM Heap·HTTP 요청률 패널 확인.
 
-**검증 결과:** 노드·앱 메트릭을 시각화.
+> **결과** · 노드·앱 메트릭을 시각화.
+
+---
 
 ## 06. Grafana 종료 원인 분석과 설정 보존
 
 ### 종료 원인 확인과 메모리·저장소 조치
 
-**실행·확인 내용**
+**실행**
 
 계정·대시보드 설정 소실 후 컨테이너의 마지막 종료 상태를 조회.
 
 ![검증 캡처 35 — grafana_ommkilled오류 해결1.png](images/annotated/evidence-35.png)
 
-**캡처 확인 포인트**
+**확인 포인트**
 
 - `restartCount: 1`, `Reason: OOMKilled`, `ExitCode: 137` 확인.
 
-**검증 결과:** 메모리 부족에 따른 종료 확인. 메모리 한도 500Mi→1Gi·requests 250Mi→512Mi 조정과 별개로, 설정 보존을 위해 /var/lib/grafana에 EBS gp3 5Gi PVC를 연결.
+> **결과** · 메모리 부족에 따른 종료 확인. 메모리 한도 500Mi→1Gi·requests 250Mi→512Mi 조정과 별개로, 설정 보존을 위해 /var/lib/grafana에 EBS gp3 5Gi PVC를 연결.
 
 **조치 후 확인**
 
-EBS CSI Controller 2/2·노드 DaemonSet 3/3 정상, PVC Bound 확인. 설정 저장 → rollout restart → 계정·데이터 소스·대시보드 유지 확인.
+| 대상 | 확인 내용 |
+| :--- | :--- |
+| **EBS CSI** | Controller 2/2·노드 DaemonSet 3/3 정상 |
+| **저장소** | PVC `Bound` |
+| **설정 보존** | 설정 저장 → rollout restart → 계정·데이터 소스·대시보드 유지 |
+
+---
 
 ## 07. CloudWatch 상태 변경과 SNS 알림 전달
 
 ### 경보 조건과 SNS 연결 확인
 
-**실행·확인 내용**
+**실행**
 
 AWS/EC2 CPUUtilization의 ASG 평균이 80% 이상인 5분 구간 2회(300초·2/2) 조건으로 경보를 구성하고 ALARM·OK 상태의 SNS 작업을 연결.
 
@@ -319,31 +363,35 @@ AWS/EC2 CPUUtilization의 ASG 평균이 80% 이상인 5분 구간 2회(300초·2
 
 ![검증 캡처 27 — cloudewatch3.png](images/annotated/evidence-27.png)
 
-**캡처 확인 포인트**
+**확인 포인트**
 
 - CPU 임계값·평가 데이터 포인트 2/2·기간 5분 확인.
 - ALARM·OK 상태에서 같은 SNS 주제로 전달하는 작업 확인.
 - 세 번째 이미지는 수동 테스트 이전의 이력이며 아래 테스트 결과와 구분.
 
-**검증 결과:** 경보 판단 조건과 알림 전달 대상을 연결.
+> **결과** · 경보 판단 조건과 알림 전달 대상을 연결.
+
+---
 
 ### SNS 직접 게시 테스트
 
-**실행·확인 내용**
+**실행**
 
 SNS 주제에 테스트 메시지를 직접 게시하고 수신 메일 확인.
 
 ![검증 캡처 31 — cloudwatch_구독이메일_메세지테스트.png](images/annotated/evidence-31.png)
 
-**캡처 확인 포인트**
+**확인 포인트**
 
 - SNS 테스트 메일 설명용 가림 사본.
 
-**검증 결과:** SNS 직접 게시 메시지 수신 확인.
+> **결과** · SNS 직접 게시 메시지 수신 확인.
+
+---
 
 ### 수동 ALARM 전환과 경보 메일·이력 대조
 
-**실행·확인 내용**
+**실행**
 
 set-alarm-state로 경보를 ALARM 상태로 바꾸고 이메일과 CloudWatch History 확인.
 
@@ -353,33 +401,37 @@ set-alarm-state로 경보를 ALARM 상태로 바꾸고 이메일과 CloudWatch H
 
 ![검증 캡처 30 — cloudewatch_test3.png](images/annotated/evidence-30.png)
 
-**캡처 확인 포인트**
+**확인 포인트**
 
 - 실행 명령의 `state-value ALARM`과 `Manual notification path test` 사유 확인.
 - 수신 메일의 ALARM 제목, `OK → ALARM`, 동일한 수동 테스트 사유 확인.
 - History의 11:07 ALARM·11:08 OK 전환과 SNS 작업 실행 확인.
 
-**검증 결과:** CloudWatch 상태 변경→SNS→이메일 전달 경로 확인. 실제 CPU 임계값 초과는 미검증.
+> **결과** · CloudWatch 상태 변경→SNS→이메일 전달 경로 확인. 실제 CPU 임계값 초과는 미검증.
+
+---
 
 ### EKS 제어 영역 로그 확인
 
-**실행·확인 내용**
+**실행**
 
 EKS의 api·audit·authenticator 로그 수집을 설정하고 CloudWatch 로그 그룹 확인.
 
 ![검증 캡처 32 — cloudwatch_로그스트림확인.png](images/annotated/evidence-32.png)
 
-**캡처 확인 포인트**
+**확인 포인트**
 
 - `kube-apiserver`, `kube-apiserver-audit`, `authenticator` 로그 스트림과 마지막 이벤트 시각 확인.
 
-**검증 결과:** EKS 제어 영역 로그 스트림 확인. 앱 로그 수집·주문 SNS 연동은 미구현.
+> **결과** · EKS 제어 영역 로그 스트림 확인. 앱 로그 수집·주문 SNS 연동은 미구현.
+
+---
 
 ## 08. DB 접근 범위 제한 후 재접속
 
 ### PC /32 적용과 보안 그룹 확인
 
-**실행·확인 내용**
+**실행**
 
 실습 중 `0.0.0.0/0`이던 외부 Workbench 접근 허용 범위를 최종 PC 공인 IP /32로 변경하고 Terraform을 적용한 뒤 RDS 보안 그룹 확인.
 
@@ -387,28 +439,35 @@ EKS의 api·audit·authenticator 로그 수집을 설정하고 CloudWatch 로그
 
 ![검증 캡처 24 — RDS의 공개 접근은 유지하면서 외부 PC의 MySQL 접속 허용 범위만 제한3.png](images/annotated/evidence-24.png)
 
-**캡처 확인 포인트**
+**확인 포인트**
 
 - `workbench_allowed_cidr` 값이 PC 공인 IP `/32`인지 확인.
 - RDS의 CIDR/IP Inbound 규칙과 별도의 EKS 보안 그룹 규칙 확인.
 
-**검증 결과:** 외부 MySQL 접근 출발지를 제한. RDS의 Public 접근 자체는 유지.
+> **결과** · 외부 MySQL 접근 출발지를 제한. RDS의 Public 접근 자체는 유지.
+
+---
 
 ### 변경 후 Workbench 재접속·조회
 
-**실행·확인 내용**
+**실행**
 
 접근 범위 변경 후 Workbench에서 DB를 선택하고 같은 상품을 재조회.
 
 ![검증 캡처 23 — RDS의 공개 접근은 유지하면서 외부 PC의 MySQL 접속 허용 범위만 제한2.png](images/annotated/evidence-23.png)
 
-**캡처 확인 포인트**
+**확인 포인트**
 
 - 결과 행의 상품 ID 2·재고 7 확인.
 - 하단 초기 1046 오류 뒤 `USE ordermsa`와 SELECT 성공 확인.
 
-**검증 결과:** 접근 범위를 제한한 상태에서 DB 조회가 가능함 확인.
+> **결과** · 접근 범위를 제한한 상태에서 DB 조회가 가능함 확인.
+
+---
 
 ## 검증 완료 범위와 한계
 
-회원·상품 이미지·순차 주문, 자동 배포, 선언 상태 복구, 부하 확장·축소, 메트릭 시각화, 알림 전달 확인. **미검증:** 결제·동시 주문 정합성·분산 트랜잭션·멀티 AZ DB 장애 복구·성능 SLA.
+| 구분 | 범위 |
+| :--- | :--- |
+| **확인 완료** | 회원·상품 이미지·순차 주문·자동 배포·상태 복구·부하 확장 및 Pod 축소·메트릭·알림 전달 |
+| **미검증** | 결제·동시 주문 정합성·분산 트랜잭션·멀티 AZ DB 복구·성능 SLA |
