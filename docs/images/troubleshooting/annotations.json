@@ -1,0 +1,77 @@
+[
+  {
+    "file": "monitoring-outofsync.png",
+    "source": "docs/images/evidence-03.png",
+    "crop": [
+      660,
+      680,
+      420,
+      350
+    ],
+    "scale": 2,
+    "title": "monitoring 동기화 상태",
+    "note": "수정 전: Healthy · OutOfSync",
+    "boxes": [
+      [
+        688,
+        698,
+        330,
+        112
+      ]
+    ],
+    "source_sha256": "2803135a39922b061c6b920aeaad4fbc2c6010e9491e038a7147822b785825b5",
+    "verified_unmarked_pixels": 140812
+  },
+  {
+    "file": "hpa-scale-out.png",
+    "source": "docs/images/evidence-05.png",
+    "crop": [
+      0,
+      108,
+      770,
+      305
+    ],
+    "scale": 1,
+    "title": "부하 이후 Product Pod 확장",
+    "note": "REPLICAS: 1 → 2 → 4 → 5",
+    "boxes": [
+      [
+        601,
+        145,
+        39,
+        255
+      ]
+    ],
+    "source_sha256": "3948171d61cef43351f4399f72ae5ac804ba47bbde8ac874a3e162740602131d",
+    "verified_unmarked_pixels": 230734
+  },
+  {
+    "file": "workbench-1046-resolved.png",
+    "source": "docs/images/evidence-23.png",
+    "crop": [
+      210,
+      765,
+      1250,
+      260
+    ],
+    "scale": 1,
+    "title": "DB 선택 전 오류와 선택 후 조회 성공",
+    "note": "위: Error 1046   /   아래: USE ordermsa → SELECT 성공",
+    "boxes": [
+      [
+        840,
+        792,
+        490,
+        46
+      ],
+      [
+        269,
+        882,
+        1080,
+        137
+      ]
+    ],
+    "source_sha256": "3cb075cc2655b1f467a2fefc189a7177980d18af41169d0fe4a95429213719c2",
+    "verified_unmarked_pixels": 300458
+  }
+]
