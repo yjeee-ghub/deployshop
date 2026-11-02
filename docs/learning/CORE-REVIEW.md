@@ -1,6 +1,6 @@
 # AWS MSA 핵심 개념 복습
 
-여러 프로젝트에서 반복해 확인한 개념을 **선택 이유·동작 원리·검증 기준**으로 정리했습니다. 세부 명령과 구축 순서는 [상세 복습 노트](STUDY-NOTES.md), 개인 프로젝트 실행 근거는 [검증 결과](../VALIDATION.md)를 참고합니다.
+여러 프로젝트에서 반복해 확인한 개념을 **선택 이유·동작 원리·검증 기준**으로 정리했습니다. 세부 명령과 구축 순서는 [상세 복습 노트](STUDY-NOTES.md), 개인 프로젝트 실행 근거는 [실행 및 검증 결과](../VALIDATION.md)를 참고합니다.
 
 ## 프로젝트별 구현 범위
 
@@ -153,6 +153,6 @@ TLS: 발급 요청 → 도메인 검증 → 인증서 → TLS 종료 지점에�
 - Codex ‘aws-eks-final-project’: `개인 프로젝트 발표 자료 준비`, `발표 대본 추가수정`, `발표 대본 수정`, `PPT`, `프로젝트 발표 흐름 정리`, `오늘 실행한 리소스 삭제`, `최종 프로젝트 실행 및 검증`, `최종 프로젝트 흐름 설명 생성`, `도메인 호스팅 영역 삭제 확인`의 45페이지·509턴.
 - Codex 대상 대화는 추가 페이지 없음까지 확인했습니다. 턴에는 단순 작업·완료 보고도 포함되며 기술 질문 횟수와 같지 않습니다.
 
-개인 사례는 2026-10-16 [검증 기록](../VALIDATION.md), 팀 사례는 [배포](https://github.com/yjeee-ghub/aws-eks-final-project/blob/main/docs/02-deployment.md)·[State](https://github.com/yjeee-ghub/aws-eks-final-project/blob/main/docs/07-terraform-state.md)·[운영·복원](https://github.com/yjeee-ghub/aws-eks-final-project/blob/main/docs/16-integrated-operations.md) 기록 및 로컬 설정과 대조했습니다. 팀의 초기·최종·별도 계정 실행은 구분했으며 이번 문서 수정 중 AWS를 재실행하지 않았습니다.
+개인 사례는 2026-10-16 [실행 및 검증 결과](../VALIDATION.md), 팀 사례는 [배포](https://github.com/yjeee-ghub/aws-eks-final-project/blob/main/docs/02-deployment.md)·[State](https://github.com/yjeee-ghub/aws-eks-final-project/blob/main/docs/07-terraform-state.md)·[운영·복원](https://github.com/yjeee-ghub/aws-eks-final-project/blob/main/docs/16-integrated-operations.md) 기록 및 로컬 설정과 대조했습니다. 팀의 초기·최종·별도 계정 실행은 구분했으며 이번 문서 수정 중 AWS를 재실행하지 않았습니다.
 
 </details>

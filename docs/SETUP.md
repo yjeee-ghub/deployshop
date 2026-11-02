@@ -2,7 +2,7 @@
 
 이 문서는 2026-10-16 실습의 최종 구성을 기준으로 순서를 정리한 것입니다. 명령은 사용자가 직접 실행하는 참고 자료이며 문서 작성 과정에서는 AWS·Kubernetes 명령을 실행하지 않았습니다. 계정·도메인·OIDC·서브넷·이미지 주소는 새 환경에 맞게 변경해야 합니다. `latest` 및 upstream `stable/latest` 설치 URL은 실습 당시 사용한 것으로, 재현 시 동일 버전을 보장하지 않습니다.
 
-상세 설명은 [복습 노트](learning/STUDY-NOTES.md), 실제 결과는 [검증 문서](VALIDATION.md)를 참고합니다.
+상세 설명은 [복습 노트](learning/STUDY-NOTES.md), 실제 결과는 [실행 및 검증 결과](VALIDATION.md)를 참고합니다.
 
 ## 1. 사전 준비와 관리 범위
 
@@ -130,7 +130,7 @@ Argo CD가 관리하는 이후 변경은 Git 반영 후 Sync로 적용했습니�
 
 Terraform 적용 후 SNS 이메일의 구독 확인 링크를 직접 승인합니다. SNS 테스트 메시지와 수동 CloudWatch ALARM 전환으로 알림 경로를 확인했습니다. EKS control plane의 api·audit·authenticator 로그 스트림을 확인했습니다.
 
-웹에서 로그인·상품 조회·구매를 수행하고 Postman의 Bearer 인증 주문 및 Workbench SELECT로 재고·주문을 대조합니다. 부하 테스트 종료 후 load Pod를 삭제하고 HPA 축소를 확인합니다. [검증 문서](VALIDATION.md)에 기대값과 관찰값이 있습니다.
+웹에서 로그인·상품 조회·구매를 수행하고 Postman의 Bearer 인증 주문 및 Workbench SELECT로 재고·주문을 대조합니다. 부하 테스트 종료 후 load Pod를 삭제하고 HPA 축소를 확인합니다. [실행 및 검증 결과](VALIDATION.md)에 기대값과 관찰값이 있습니다.
 
 ## 10. 종료 시 보존 대상
 
