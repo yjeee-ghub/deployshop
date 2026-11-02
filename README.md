@@ -25,6 +25,7 @@
 | [트러블슈팅](docs/TROUBLESHOOTING.md) | Grafana OOM·EBS, 인증서 충돌, IAM·ECR 오류 해결 |
 | [증거 목록](docs/EVIDENCE.md) | 캡처별 설명, 공개용 가림 처리, 검증 시점 구분 |
 | [대시보드 JSON](docs/dashboards/README.md) | 원본 내보내기와 재사용 사본, Import 방법 |
+| [질문 기반 핵심 복습](docs/learning/CORE-REVIEW.md) | ChatGPT·Codex 개인·팀 프로젝트 질문 통합, 개념·오류·면접 핵심 |
 | [교육·복습 노트](docs/learning/STUDY-NOTES.md) | 단계별 명령·의미·정상 결과·오류 해결 및 EBS 상세 설명 |
 
 ## 01. System Architecture
