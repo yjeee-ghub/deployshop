@@ -2,27 +2,25 @@
 
 # 🛒 yjeee-deployshop
 
-### AWS Cloud-Native MSA · DevOps Engineering Portfolio
+### AWS EKS 인프라 구축과 배포·운영 검증
 
-**Terraform IaC · Amazon EKS · CI/CD · GitOps · Monitoring**
-
-`Infrastructure` → `Deployment` → `Autoscaling` → `Observability` → `Validation`
+**Terraform · Amazon EKS · GitHub Actions · Argo CD · Monitoring**
 
 </div>
 
 ---
 
-> 회원·상품·주문 서비스의 AWS EKS 배포와 인프라 구축·자동 배포·자동 확장·모니터링·주문 검증을 연결한 DevOps 포트폴리오.
+회원·상품·주문으로 구성된 쇼핑몰을 **AWS EKS에 배포하고, 자동 배포·확장·관측을 연결해 동작을 검증한 개인 프로젝트**.
 
-| 📚 문서 | 내용 |
+애플리케이션은 수업 제공 코드 기반. 직접 수행한 범위는 **AWS 인프라 구성, 컨테이너 배포 연결, 운영 문제 해결, 웹·API·DB 검증**.
+
+| 핵심 경험 | 직접 수행하고 확인한 내용 |
 | :--- | :--- |
-| [구축 절차](docs/SETUP.md) | 실행 순서, CLI·콘솔 작업, Terraform 관리 범위 |
-| [실행 및 검증 결과](docs/VALIDATION.md) | 실행 설명·강조 캡처·확인 포인트·결과를 한 문서에서 확인 |
-| [문제 분석 및 해결](docs/TROUBLESHOOTING.md) | Grafana OOM·EBS, HPA·Argo CD 충돌, 인증서 충돌 해결 |
-| [핵심 개념 복습](docs/learning/CORE-REVIEW.md) | 개인 프로젝트의 기술 선택 이유와 동작 원리 |
-| [교육·복습 노트](docs/learning/STUDY-NOTES.md) | 단계별 명령·의미·정상 결과·오류 해결 및 EBS 상세 설명 |
+| **부하에 따른 자동 확장** | 상품 조회 부하 생성·제거 → 상품 Pod **1 → 5 → 1**, 노드 **2 → 3** 확장 확인 |
+| **배포 제어 충돌 해결** | HPA와 Argo CD의 replicas 관리 분리 → 확장값이 Git 고정값으로 되돌아가는 문제 해소 |
+| **Grafana 설정 보존** | OOM 원인 분석·메모리 조정·EBS PVC 연결 → 재시작 후 계정·데이터 소스·대시보드 유지 확인 |
 
-[전체 문서 보기](docs/README.md)
+[실행 및 검증 결과](docs/VALIDATION.md) · [문제 분석 및 해결](docs/TROUBLESHOOTING.md)
 
 ## 01. System Architecture
 
@@ -30,39 +28,21 @@
 
 [상세 아키텍처 보기](docs/ARCHITECTURE.md)
 
-Route 53으로 DNS 조회 → Frontend 로드 → 같은 도메인의 API 경로로 요청. Terraform·CLI·콘솔별 관리 범위는 [구축 절차](docs/SETUP.md)에서 확인.
+- **요청:** Route 53으로 DNS 조회 → NLB → Ingress NGINX → Frontend / API Gateway → Member·Product·Ordering.
+- **데이터:** RDS MySQL에 회원·상품·주문 저장, S3에 상품 이미지 저장.
+- **관리:** Terraform으로 AWS 기본 자원 구성. CLI·콘솔 연결 범위는 [구축 절차](docs/SETUP.md)에서 확인.
 
-### 직접 수행한 범위와 기술 선택
+## 02. 기술 선택과 구현
 
-직접 수행: **인프라 구성·배포 연결·운영 문제 해결·실행 검증**. 회원·상품·주문 애플리케이션은 수업 제공 코드 기반.
-
-| 선택 | 프로젝트에서의 목적 |
-|---|---|
-| Terraform / EKS | AWS 기본 자원 모듈화와 서비스별 컨테이너 배포·확장 실습 |
-| Actions / Argo CD | 변경 서비스 이미지 배포와 Git 선언 상태 복구. 현재 직접 배포와 GitOps 혼용 |
-| HPA / Cluster Autoscaler | Pod와 노드 용량을 각각 제어 |
-| Prometheus / Grafana / EBS | 앱·노드 메트릭 관찰과 Grafana 설정 보존 |
-
-## 02. Core Services & Tools
-
-| 서비스 | 역할 | 이미지 저장소 |
-| :--- | :--- | :--- |
-| 👤 Member | 회원가입·중복 검사·로그인·JWT | `member-service` |
-| 📦 Product | 상품 등록·조회·재고 차감·S3 이미지 | `product-service` |
-| 🛒 Ordering | 상품 서비스 호출·재고 검사·주문 저장 | `ordering-service` |
-| 🌐 API Gateway | 경로 라우팅·JWT 검증·사용자 정보 전달 | `apigateway` |
-| 🖥️ Frontend | 쇼핑몰 정적 화면 제공 | `frontend-service` |
-
-| 영역 | 사용 기술 |
+| 선택 | 선택 이유와 적용 방식 |
 | :--- | :--- |
-| Cloud / IaC | AWS · Terraform Root + Child Modules · Local State |
-| Container / Network | Docker · ECR · EKS · Ingress NGINX · NLB · Route 53 · cert-manager |
-| Delivery | GitHub · GitHub Actions · Argo CD |
-| Scaling | Metrics Server · CPU 기반 HPA · Cluster Autoscaler |
-| Monitoring / Storage | Prometheus · Node Exporter · Actuator / Micrometer · Grafana · EBS CSI / PVC · CloudWatch · SNS |
-| 실습 / 검증 | Windows · PowerShell · VS Code · Postman · MySQL Workbench |
+| **Terraform / EKS** | AWS 자원을 모듈로 관리하고, 서비스별 컨테이너 배포·확장 구성 |
+| **Actions / Argo CD** | 변경 서비스의 이미지 빌드·직접 배포와 Git 선언 상태의 동기화·복구를 연결 |
+| **HPA / Cluster Autoscaler** | 애플리케이션 Pod 수와 이를 수용할 노드 용량을 각각 제어 |
+| **Prometheus / Grafana / EBS** | 노드·앱 지표 수집과 시각화, Grafana 설정의 영구 저장 구성 |
+| **CloudWatch / SNS** | EKS 제어 영역 로그 수집, 노드 그룹 CPU 경보·이메일 전달 경로 구성 |
 
-## 03. CI/CD & GitOps
+### 배포 흐름
 
 ```mermaid
 flowchart LR
@@ -70,74 +50,50 @@ flowchart LR
     PUSH --> ARGO["Argo CD · Git YAML 비교"] --> SYNC["자동 동기화 / selfHeal"] --> EKS
 ```
 
-- **Actions:** 변경 서비스 이미지 빌드·ECR 업로드 → kubectl 직접 배포. `latest` 태그·`MUTABLE` 저장소 사용.
-- **Argo CD:** `msa-root`로 하위 Application 관리, Git 매니페스트와 실제 상태 동기화.
-- **replicas 제어:** Backend는 HPA 관리·Argo CD 비교 제외, Frontend는 Git의 `replicas: 1` 유지.
+Actions 직접 배포와 Argo CD 선언 동기화 병행. Backend replicas는 HPA, Frontend의 고정 replicas는 Git이 관리.
 
-이미지 태그의 Git 자동 갱신은 미구현.
+## 03. 대표 문제 해결
 
-## 04. 실행 및 검증 결과
+| 문제 | 원인과 조치 | 확인 결과 |
+| :--- | :--- | :--- |
+| **HPA 확장 후 Pod 수 복귀** | Argo CD가 고정 replicas 재적용 → `/spec/replicas` 제외·`RespectIgnoreDifferences=true` 적용 | HPA의 Pod 수 제어와 Argo CD 동기화 역할 분리 |
+| **Grafana 종료·설정 소실** | `OOMKilled / 137`·영구 저장소 미연결 → limit `500Mi → 1Gi`·EBS gp3 `5Gi` PVC 연결 | Pod 재시작 후 설정 유지 |
+| **Certificate 반복 OutOfSync** | Ingress 자동 생성과 명시적 Certificate의 중복 관리 → issuer annotation 제거 | 동기화·HTTPS 정상 확인 |
 
-| 검증 | 확인 결과 |
+증상·원인·설정 변경·확인 과정: [문제 분석 및 해결](docs/TROUBLESHOOTING.md).
+
+## 04. 기능·운영 검증
+
+| 검증 대상 | 확인 결과 |
 | :--- | :--- |
-| 주문·재고 | 웹·API 순차 구매 후 `10 → 9 → 7`, 초과 주문 `400`·기존 데이터 유지 |
-| HPA·CA | 상품 Pod `1 → 5 → 1`, 노드 `2 → 3` 확장 |
-| 메트릭 | 노드·앱 Targets `UP`·`up=1`, Grafana 패널 표시 |
-| 로그·알림 | EKS 제어 영역 로그 수집, 수동 ALARM → SNS 이메일 전달·OK 복귀 |
+| **웹·API·DB 주문 대조** | 동일 상품의 순차 구매 후 재고 `10 → 9 → 7`·주문 저장, 초과 주문 `400`·기존 데이터 유지 |
+| **메트릭 수집·시각화** | 노드·앱 Targets `UP`·`up=1`, Grafana 패널 표시 |
+| **로그·경보 전달** | EKS 제어 영역 로그 확인, 수동 ALARM 전환 → SNS 이메일 전달·OK 복귀 |
 
-실행 과정·강조 캡처·확인 포인트: [실행 및 검증 결과](docs/VALIDATION.md).
+실행 내용 → 강조 캡처 → 확인 포인트 → 결과: [실행 및 검증 결과](docs/VALIDATION.md).
 
-## 05. 문제 분석 및 해결
+## 05. 상세 문서
 
-| 문제 | 조치와 결과 |
+| 문서 | 확인할 내용 |
 | :--- | :--- |
-| Grafana OOM·설정 소실 | 메모리 조정·EBS PVC 연결 → 재시작 후 설정 유지 |
-| HPA·Argo CD 제어 충돌 | replicas 관리 분리 → 자동 확장·축소 유지 |
-| Certificate 반복 OutOfSync | 중복 생성 설정 제거 → 동기화·HTTPS 정상 |
+| [구축 및 재현 절차](docs/SETUP.md) | 실행 순서·Terraform 및 CLI·콘솔 관리 범위 |
+| [실행 및 검증 결과](docs/VALIDATION.md) | 실행 과정과 검증 캡처 |
+| [문제 분석 및 해결](docs/TROUBLESHOOTING.md) | 문제별 원인·조치·결과 |
+| [핵심 개념 복습](docs/learning/CORE-REVIEW.md) | 개인 프로젝트의 기술 선택 이유·동작 원리 |
+| [구축·검증 복습 노트](docs/learning/STUDY-NOTES.md) | 단계별 명령·정상 상태·Grafana EBS 상세 절차 |
 
-증상·원인·설정 변경: [문제 분석 및 해결](docs/TROUBLESHOOTING.md).
+[전체 문서 보기](docs/README.md)
 
-## 06. Repository Structure
+## 06. 구성·검증 범위
 
-```text
-yjeee-deployshop/
-├── .github/workflows/            # 이미지 빌드 및 직접 배포
-├── apps/                        # 서비스 소스·Dockerfile
-│   ├── apigateway/
-│   ├── frontend/
-│   ├── member/
-│   ├── ordering/
-│   └── product/
-├── deploy/
-│   ├── argocd/                  # root / 하위 Application 선언
-│   └── k8s/
-│       ├── apps/                # 서비스별 Deployment·Service
-│       └── platform/            # Ingress·인증서·HPA·CA·모니터링
-├── terraform/                   # 여기서만 init / plan / apply
-│   └── modules/                 # network·iam·eks·rds·ecr·s3
-└── docs/
-    ├── README.md                # 문서 목록
-    ├── ARCHITECTURE.md
-    ├── SETUP.md
-    ├── VALIDATION.md
-    ├── TROUBLESHOOTING.md
-    ├── images/                  # 공개용 캡처 사본
-    └── learning/                # 핵심 복습·상세 노트·체크리스트
-```
-
-## 07. Scope & Operations Notes
-
-- **구축 범위:** Terraform으로 AWS 기본 자원·CloudWatch/SNS 관리. Route 53·일부 IAM·EBS CSI 연결은 콘솔 구성.
+- **실습 구성:** Local State·`latest` 이미지·AWS 키 인증 사용. Route 53·일부 IAM·EBS CSI 연결은 콘솔 구성.
 - **데이터·접근:** Single-AZ Public RDS·외부 PC `/32` 제한. Grafana EBS 영구 저장, Prometheus 영구 볼륨 미적용.
-- **검증 범위:** 순차 주문·확장·상태 복구·수동 경보 전달 확인. 동시 주문·결제·실제 CPU 임계값 초과·AZ 장애 복구는 미검증.
-- **보존·정리:** 인증값·State는 Git 추적 제외. 종료 시 EBS·RDS 스냅샷·S3 버전·로그 보호 설정 확인.
+- **미검증:** 동시 주문 정합성·결제·실제 CPU 임계값 초과·AZ 장애 복구. 이미지 태그의 Git 자동 갱신·주문 SNS 연동은 미구현.
 
 ---
 
 <div align="center">
 
-**실제 실행 결과와 오류 해결 과정을 함께 기록한 DevOps 포트폴리오**
-
-<sub>yjeee-deployshop · AWS MSA DevOps Portfolio</sub>
+**인프라 구성부터 배포·확장·문제 해결·실행 검증까지 연결한 개인 프로젝트**
 
 </div>
