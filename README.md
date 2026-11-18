@@ -85,16 +85,12 @@ Actions는 이미지를 빌드해 직접 배포하고, Argo CD는 Git 선언과 
 
 [프로젝트 문서 목록](docs/README.md)
 
-## 06. 구성·검증 범위
 
-- **실습 구성:** Local State·`latest` 이미지·AWS 키 인증을 사용했습니다. Route 53·일부 IAM·EBS CSI 연결은 콘솔에서 구성했습니다.
-- **데이터·접근:** Single-AZ Public RDS를 사용하며 외부 PC 접근은 `/32`로 제한했습니다. Grafana는 EBS에 저장하고, Prometheus에는 영구 볼륨을 적용하지 않았습니다.
-- **검증 범위:** 동시 주문 정합성·결제·실제 CPU 임계값 초과·AZ 장애 복구는 검증하지 않았습니다. 이미지 태그의 Git 자동 갱신과 주문 SNS 연동은 구현하지 않았습니다.
 
 ---
 
 <div align="center">
 
-**인프라 구성부터 배포·확장·문제 해결·실행 검증까지 연결한 개인 프로젝트**
+
 
 </div>
